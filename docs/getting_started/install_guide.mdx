@@ -1,102 +1,101 @@
 ---
-title: "Install Guide"
-description: "Your Home for Localized MemMachine Installation"
+title: "安装指南"
+description: "MemMachine 本地化部署起点"
 icon: "bookmark"
 ---
 
-## MemMachine Installation Guide
+## MemMachine 安装指南
 
-This guide will walk you through the process of installing MemMachine. We'll start with the prerequisites you need to get set up, followed by two different installation methods.
+本指南将带你完成 MemMachine 的安装流程。我们会先介绍所需的前置条件，然后提供两种不同的安装方式。
 
 <Steps>
-<Step title="Gather Your Prerequisites">
+<Step title="准备前置条件">
 
-Before you install the MemMachine software itself, you'll need to set up a few things. Be sure to note down any passwords or keys you create, as you'll need them later.
+在安装 MemMachine 之前，需要先配置一些基础环境。请务必记录下过程中创建的密码或密钥，后续步骤会用到。
 
-### A. Core Software
+### A. 核心软件
 
-- **Python 3.12+**: MemMachine requires Python version 3.12 or newer.
-- **PostgreSQL**: You will need a local PostgreSQL instance with the `pgvector` extension. You can find installation instructions on the official [PostgreSQL Downloads page](https://www.postgresql.org/download/). Once installed, create a new database and a user with full privileges for that database.
-- **Neo4j**: A Neo4j database is required.  You can find installation instructions on the official [Neo4j Documentation page](https://neo4j.com/docs/). After installation, start the Neo4j server and set a password for the default `neo4j` user.
+- **Python 3.12+**：MemMachine 需要 Python 3.12 或以上版本。
+- **PostgreSQL**：需要本地 PostgreSQL 实例并启用 `pgvector` 扩展。可参考官方 [PostgreSQL 下载页面](https://www.postgresql.org/download/) 获取安装说明。安装完成后，请创建一个数据库，并为其配置拥有完整权限的用户。
+- **Neo4j**：需要准备 Neo4j 数据库。安装步骤可查阅官方 [Neo4j 文档](https://neo4j.com/docs/)。安装完成后，启动 Neo4j 服务器，并为默认用户 `neo4j` 设置密码。
 
-### B. Accounts and Keys
+### B. 账户与密钥
 
-- **OpenAI API Key**: You will need an OpenAI account to use MemMachine. You can sign up on the [OpenAI Platform](https://platform.openai.com/). You'll need to generate and copy your **API Key** for a later step.
+- **OpenAI API Key**：使用 MemMachine 需要 OpenAI 账户。可在 [OpenAI 平台](https://platform.openai.com/) 注册，并生成 **API Key** 以便稍后使用。
 
-<Note> MemMachine itself is free to install, but please be aware that using the software consumes tokens from your OpenAI account.</Note>
+<Note>MemMachine 本身可以免费安装，但请注意，运行过程中会消耗你 OpenAI 账户中的 tokens。</Note>
 
 </Step>
-<Step title="Choose Your Installation Method">
+<Step title="选择安装方式">
 
-You can install MemMachine using a Python package manager or by cloning the source code from our GitHub repository.
+你可以通过 Python 包管理器安装 MemMachine，或从 GitHub 仓库克隆源码。
 <AccordionGroup>
-<Accordion title="Option 1: Install with Pip">
+<Accordion title="方式一：使用 Pip 安装">
 
-This is the recommended method for most users who want to add MemMachine to an existing Python environment.
+适合希望在现有 Python 环境中直接集成 MemMachine 的用户，推荐使用此方法。
 
-To create a python environment(if it does not already exist), you can use `venv` as follows:
+若尚未创建 Python 环境，可使用 `venv` 快速搭建：
 ```sh
 python -m venv memmachine-env
 source memmachine-env/bin/activate  # On Windows use `source memmachine-env/Scripts/activate`
 ```
 
-A. Run the following command in your terminal:
+A. 在终端中执行以下命令：
 
- - If you are using MemMachine in a CPU-only environment, use:
+ - 如果你在纯 CPU 环境中运行 MemMachine，请使用：
 ```sh
    pip install memmachine
 ```
- - If you have an NVIDIA GPU and want to leverage it, use:
+ - 如果你拥有 NVIDIA GPU 并希望利用 GPU 加速，请使用：
 ```sh
 pip install memmachine[gpu]
 ```
-B. Next, install dependencies from NLTK through the following MemMachine command:
+B. 随后，通过以下命令安装 NLTK 相关依赖：
 ```sh
 memmachine-nltk-setup
 ```
 </Accordion>
-<Accordion title="Option 2: Install from Source (GitHub)">
+<Accordion title="方式二：从 GitHub 源码安装">
 
-This method is for users who want to contribute to the project or run from the latest source code.
+适合希望参与项目贡献或直接使用最新源码的用户。
 
-First, clone the repository and navigate into the project directory:
+首先，克隆仓库并进入项目目录：
 
 ```sh
 git clone https://github.com/MemMachine/MemMachine.git
 cd MemMachine
 ```
 
-Second, Ensure you have a python environment set up. You can use `venv`, `conda`, or any other environment manager of your choice. 
+然后，确保已配置好 Python 环境，可使用 `venv`、`conda` 等任意环境管理工具。
 
-
-Next, use the `uv` tool to install all dependencies. If you don't have `uv`, you'll need to install it first.
+接下来，使用 `uv` 工具安装所有依赖。如果尚未安装 `uv`，请先执行以下命令：
 
 ```sh
 # If you don't have uv installed, run this command:
 curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# Now, install the project dependencies:
+# 安装项目依赖：
 uv pip install .
 ```
-<Note> If you wish to run with an NVIDIA GPU, you will need to install dependencies for GPU by using the `uv pip install ".[gpu]"` command.</Note>
+<Note>若希望启用 NVIDIA GPU，请改用 `uv pip install ".[gpu]"` 来安装 GPU 相关依赖。</Note>
 </Accordion>
 </AccordionGroup>
 </Step>
-<Step title="Create Your Configuration File - `cfg.yml`">
+<Step title="创建配置文件 `cfg.yml`">
 
-MemMachine uses a single configuration file, `cfg.yml` to provide login and options to it.
+MemMachine 依赖单个配置文件 `cfg.yml` 来提供登录信息与运行选项。
 
-Create a file named `cfg.yml` in the same directory that you plan on running memmachine from. This file configures the various models and storage options for MemMachine.
+请在准备运行 MemMachine 的目录中创建 `cfg.yml`，用于配置模型、存储等各项参数。
 
-There are two examples of `cfg.yml` files in the `sample_configs` directory of the GitHub repository: one for CPU-only installations and another for GPU-enabled setups. Be sure to choose the one that matches your environment.
+GitHub 仓库的 `sample_configs` 目录提供了两份示例：一份适用于纯 CPU 部署，另一份适用于启用 GPU 的环境。请选择与你环境匹配的版本。
 
 <AccordionGroup>
-<Accordion title="CPU-Only Installations">
-You can download this file from our GitHub repository as a template using the following curl command:
+<Accordion title="仅 CPU 环境">
+可以使用以下 curl 命令，从 GitHub 仓库下载模板：
 ```sh
 curl -o cfg.yml https://raw.githubusercontent.com/MemMachine/MemMachine/refs/heads/main/sample_configs/episodic_memory_config.cpu.sample
 ```
-Below is an example of what the CPU-only `config.yml` file should look like:
+下面展示了纯 CPU 环境下 `cfg.yml` 的示例：
 
 ```sh expandable lines
 logging:
@@ -167,14 +166,14 @@ reranker:
 prompt:
   profile: profile_prompt
 ```
-<Tip> Remember to replace the placeholders for your specific information, like OpenAI API key and Neo4j passwords, in this file.</Tip>
+<Tip>请将示例中的占位符替换为你自己的信息，例如 OpenAI API Key 与 Neo4j 密码。</Tip>
 </Accordion>
-<Accordion title="GPU-Enabled Installations">
-You can download this file from our GitHub repository as a template using the following curl command:
+<Accordion title="启用 GPU 的环境">
+可以使用以下 curl 命令，从 GitHub 仓库下载模板：
 ```sh
 curl -o cfg.yml https://raw.githubusercontent.com/MemMachine/MemMachine/refs/heads/main/sample_configs/episodic_memory_config.gpu.sample
 ```
-Below is an example of what the GPU-enabled `config.yml` file should look like:
+下面展示了支持 GPU 的 `cfg.yml` 示例：
 
 ```sh expandable lines
 logging:
@@ -250,40 +249,40 @@ reranker:
 prompt:
   profile: profile_prompt
 ```
-<Tip> Remember to replace the placeholders for your specific information, like OpenAI API key and Neo4j passwords, in this file.</Tip>
+<Tip>同样别忘了替换其中的占位符，使之符合你的实际配置。</Tip>
 </Accordion>
 </AccordionGroup>
-<Tip> 
-You can name this configuration file whatever you like, then pass it to MemMachine using the `MEMORY_CONFIG` environment variable, like in the following examples:
-
- ```sh
- export MEMORY_CONFIG="/home/steve/wibble.cfg" # Sets the config file name
- memmachine # start memmachine
- ```
+<Tip>
+你也可以使用其他文件名，并通过 `MEMORY_CONFIG` 环境变量告知 MemMachine，例如：
 
 ```sh
-MEMORY_CONFIG="/home/steve/wibble.cfg" memmachine #defines the variable and starts memmachine
+export MEMORY_CONFIG="/home/steve/wibble.cfg" # 指定配置文件
+memmachine # 启动 memmachine
+```
+
+```sh
+MEMORY_CONFIG="/home/steve/wibble.cfg" memmachine # 设置变量并立即启动
 ```
 </Tip>
 </Step>
-<Step title="Run MemMachine">
+<Step title="启动 MemMachine">
 
-You're ready to go! Run these commands from the directory where you've installed MemMachine.
+一切准备就绪！在安装 MemMachine 的目录中运行以下命令。
 
-First, you need to sync the profile schema. This is a **one-time** command that must be run before the very first time you start the server.
+首先，需要同步画像数据库的 schema。该命令只需执行 **一次**，必须在第一次启动服务之前完成。
 
 ```
 memmachine-sync-profile-schema
 ```
 
-Now you can start the MemMachine server. If you have run MemMachine before, you can skip the sync step and go straight to this command:
+接下来启动 MemMachine 服务。如果之前已经同步过 schema，可直接执行以下命令：
 
 ```
 memmachine-server
 ```
 
-You should now have the MemMachine server running.
+现在 MemMachine 服务就已经运行起来了。
 
-<Note> If you are using Docker to run your databases, ensure they are started and accessible before you try to start MemMachine.</Note>
+<Note>若数据库通过 Docker 运行，请确认相关容器已启动且可访问，再启动 MemMachine。</Note>
 </Step>
 </Steps>

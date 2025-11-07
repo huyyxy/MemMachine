@@ -1,11 +1,11 @@
 ---
-title: "Agents"
-description: "Example Agents you can build with MemMachine"
+title: "智能体"
+description: "使用 MemMachine 构建的示例智能体"
 icon: "robot"
 ---
 
-# Agent Examples
-Ready to see MemMachine in action? Click any link below to got directly to the [MemMachine Agents Repo](https://github.com/MemMachine/MemMachine/blob/main/examples/README.md). You can download and deploy the following agents straight into your own environment to quickly test MemMachine and explore how it shines in different use cases!
+# 智能体示例
+想亲眼见证 MemMachine 的实力吗？点击下方任意链接，即可前往 [MemMachine Agents 仓库](https://github.com/MemMachine/MemMachine/blob/main/examples/README.md)。你可以直接下载并部署这些智能体到自己的环境中，快速体验 MemMachine 并探索其在不同场景中的表现！
 
 <Columns cols={3}>
   <Card
@@ -13,7 +13,7 @@ Ready to see MemMachine in action? Click any link below to got directly to the [
     icon="globe"
     href="https://github.com/MemMachine/MemMachine/blob/main/examples/README.md"
   >
-    General-purpose AI assistant for any chatbot
+    通用型聊天机器人 AI 助手
   </Card>
   <Card
     title="CRM Agent"
@@ -21,81 +21,81 @@ Ready to see MemMachine in action? Click any link below to got directly to the [
 
     href="https://github.com/MemMachine/MemMachine/blob/main/examples/crm/README.md"
   >
-    An Agent targeting Customer Relationship Management
+    面向客户关系管理的智能体
   </Card>
   <Card
     title="Financial Analyst Agent"
     icon="coins"
     href="https://github.com/MemMachine/MemMachine/blob/main/examples/README.md"
   >
-    Financial analysis and reporting
+    财务分析与报表生成
   </Card>
   <Card
     title="Healthcare Agent"
     icon="heart-pulse"
     href="https://github.com/MemMachine/MemMachine/blob/main/examples/README.md"
   >
-    Healthcare assistant for patient management
+    面向患者管理的医疗助手
   </Card>  
   <Card
     title="Streamlit Frontend"
     icon="check"
     href="https://github.com/MemMachine/MemMachine/blob/main/examples/README.md"
   >
-  Web-based testing interface for all agents
+  面向所有智能体的 Web 测试界面
   </Card>
   <Card
     title="Writing Assistant"
     icon="notebook"
     href="https://github.com/MemMachine/MemMachine/blob/main/examples/writing_assistant/README.md"
 >
-    AI-powered Writing assistant
+    AI 驱动的写作助手
   </Card>
 </Columns>
 
-<Warning>Advice recieved from using these examples comes from AI generation, and should not be considered the same as advice recieved from an expert in any given field.</Warning>
+<Warning>使用这些示例获得的建议来自 AI 生成，不应视为领域专家的专业指导。</Warning>
 
 
-These agents are designed to showcase how to integrate with MemMachine's memory services. Follow these simple steps to get an agent up and running in no time.
+这些智能体旨在展示如何与 MemMachine 的记忆服务集成。按照以下步骤操作，即可迅速启动并运行。
 
-### Installation
+### 安装
 
-Getting started is a breeze! We'll just need to set up your local environment and grab a few necessary libraries.
+开始使用非常轻松！我们只需配置本地环境并安装必要依赖。
 
-1. **Create a Virtual Environment:** We highly recommend using a virtual environment to keep your project dependencies tidy. You can create one with this simple command:
+1. **创建虚拟环境：** 建议使用虚拟环境管理项目依赖，可通过以下命令创建：
 
    ```python
    python -m venv .venv
    ```
 
-2. **Activate Your Environment:** Once created, you'll need to activate it so we can install the necessary packages.
+2. **激活虚拟环境：** 创建完成后，先激活环境再安装依赖。
 
-   - On macOS/Linux:
+   - macOS/Linux：
 
      ```bash
      source .venv/bin/activate
      ```
 
-   - On Windows:
+   - Windows：
 
      ```bash
      .venv\Scripts\activate
      ```
 
-3. **Install the Libraries:** Now, let's install the core dependencies for our agents. We'll grab `uvicorn`, `requests`, `fastapi`, and `streamlit` so you're ready to go!
+3. **安装依赖库：** 接着安装智能体所需的核心依赖，包括 `uvicorn`、`requests`、`fastapi` 和 `streamlit`。
 
    ```bash
    pip install "uvicorn[standard]" requests fastapi streamlit
    ```
 
-### Connecting to MemMachine
+### 连接到 MemMachine
 
-Start MemMachine by either running the Python file or the Docker container. These example agents all use the REST API from MemMachine's `app.py`, but you can also integrate using the MCP server.
+可以通过运行 Python 脚本或 Docker 容器来启动 MemMachine。这些示例智能体默认调用 `app.py` 暴露的 REST API，你也可以选择使用 MCP 服务器进行集成。
 
-Be sure to check out the [README file](https://github.com/MemMachine/MemMachine/blob/examples/README.md) in the examples folder for more details on how make the most of our Example Agents.
+别忘了查看示例目录中的 [README](https://github.com/MemMachine/MemMachine/blob/examples/README.md)，了解更多最佳实践。
 
-<Accordion title="Complete .env file example">
- For ease of management, instead of setting each environment variable individually in your terminal, you can create a `.env` file in the root directory of your project. This file will contain all the necessary environment variables for running the agents. Here's an example of what your `.env` file might look like:
+<Accordion title="完整 `.env` 文件示例">
+ 为便于管理，你可以在项目根目录创建 `.env` 文件，而无需在终端逐个设置环境变量。该文件可集中保存运行智能体所需的所有变量。示例如下：
 ``` bash
 #memmachine required environment variables
 POSTGRES_HOST="10.0.0.59"
@@ -140,73 +140,73 @@ CRM_AUTH_TOKEN=your-token
 ```
 </Accordion>
 
-### Available Agents
-We offer four available agents to choose from, each tailored to different use cases and functionalities. You can run any of these agents by executing their respective Python files. Each agent is designed to interact with the MemMachine backend for memory storage and retrieval.
+### 可用智能体
+我们提供多种智能体可供选择，每种都针对不同场景与功能打造。执行对应的 Python 文件即可运行，所有智能体都会与 MemMachine 后端交互，实现记忆存储与检索。
 
 <Tabs>
   <Tab title="Default Agent" icon="globe">
-   - **File Name:** `example_server.py`
-   - **Purpose:** General-purpose AI assistant for any chatbot
-   - **Port:** 8000 (configurable via `EXAMPLE_SERVER_PORT`)
-   - **Features:** Basic memory storage and retrieval
-   - **Use Case:** General conversations and information management
+   - **文件名：** `example_server.py`
+   - **用途：** 通用聊天机器人 AI 助手
+   - **端口：** 8000（可通过 `EXAMPLE_SERVER_PORT` 配置）
+   - **特性：** 基础记忆存储与检索
+   - **适用场景：** 通用对话与信息管理
   </Tab>
   <Tab title="CRM Agent" icon="headset">
-   - **File Name:** `crm_server.py`
-   - **Purpose:** Customer Relationship Management
-   - **Port:** 8000 (configurable via `CRM_PORT`)
-   - **Features:**
-     - Customer data management
-     - Sales pipeline tracking
-     - Slack integration for real-time communication
-     - CRM-specific query construction
-   - **Use Case:** Sales teams, customer support, and relationship management
+   - **文件名：** `crm_server.py`
+   - **用途：** 客户关系管理
+   - **端口：** 8000（可通过 `CRM_PORT` 配置）
+   - **特性：**
+     - 客户数据管理
+     - 销售流程追踪
+     - 集成 Slack 实现实时沟通
+     - CRM 专属查询构建
+   - **适用场景：** 销售团队、客户支持与关系维护
    </Tab>
    <Tab title="Financial Analyst Agent" icon="coins">
   
-   - **File Directory:** `financial_analyst/`
-   - **Purpose:** Financial analysis and reporting
-   - **Port:** 8000 (configurable via `FINANCIAL_PORT`)
-   - **Features:**
-     - Financial data analysis
-     - Investment insights
-     - Market trend analysis
-     - Financial reporting
-   - **Use Case:** Financial advisors, investment teams, accounting departments.
+   - **文件目录：** `financial_analyst/`
+   - **用途：** 财务分析与报表
+   - **端口：** 8000（可通过 `FINANCIAL_PORT` 配置）
+   - **特性：**
+     - 财务数据分析
+     - 投资洞察
+     - 市场趋势研判
+     - 财务报告生成
+   - **适用场景：** 财务顾问、投资团队、财会部门
    </Tab>
    <Tab title="Writing Assistant" icon="notebook">
-   - **File Name:** `/writing_assistant_server.py`
-   - **Purpose:** AI-powered Writing assistant
-   - **Port:** 8000 (configurable via `WRITING_ASSISTANT_PORT`)
-   - **Features:**
-     - **Writing Style Analysis:** Analyzes your writing samples to extract detailed style characteristics
-     - **Content Type Support:** Separate style profiles for different content types (email, blog, LinkedIn, etc.)
-     - **Style Matching:** Generates new content that matches your established writing patterns
-     - **Magic Keyword Support:** Use /submit command to easily submit writing samples
-   - **Use Case:** Technical writers, content creators, professionals looking to maintain a consistent writing style.
+   - **文件名：** `/writing_assistant_server.py`
+   - **用途：** AI 写作助手
+   - **端口：** 8000（可通过 `WRITING_ASSISTANT_PORT` 配置）
+   - **特性：**
+     - **写作风格分析：** 解析示例文本，提取详细风格特征
+     - **内容类型支持：** 针对邮件、博客、LinkedIn 等不同类型建立独立风格档案
+     - **风格匹配：** 生成符合既定写作模式的内容
+     - **快捷命令：** 使用 /submit 命令便捷提交写作样本
+   - **适用场景：** 技术写作者、内容创作者、希望长期保持统一写作风格的专业人士
    </Tab>
 </Tabs>
 
-### Agent Quick Start
+### 智能体快速上手
 
-**Prerequisites**
+**前置条件**
 
 - Python 3.12+
 - FastAPI
-- Requests library
-- MemMachine backend running
-- Environment variables configured
+- Requests 库
+- MemMachine 后端已启动
+- 环境变量已配置
 
-**Running an Agent**
+**运行智能体**
 
-Set up environment variables:
+设置环境变量：
 
 ```bash
 MEMORY_BACKEND_URL="http://localhost:8080"
 OPENAI_API_KEY="your-openai-api-key"
 ```
 
-Run a specific agent:
+运行指定智能体：
 
 ```bash
 # Default agent
@@ -221,176 +221,176 @@ cd financial_analyst
 python financial_server.py
 ```
 
-Access the API:
+访问对应接口：
 
-- **Default:** `http://localhost:8000`
-- **CRM:** `http://localhost:8000` (when running CRM server)
-- **Financial:** `http://localhost:8000` (when running Financial server)
-- **Frontend:** `http://localhost:8502` (when running Streamlit app)
-- **Writing Assistant:** http://localhost:8000 (when running Writing Assistant server)
+- **Default：** `http://localhost:8000`
+- **CRM：** `http://localhost:8000`（运行 CRM 服务时）
+- **Financial：** `http://localhost:8000`（运行 Financial 服务时）
+- **Frontend：** `http://localhost:8502`（运行 Streamlit 应用时）
+- **Writing Assistant：** `http://localhost:8000`（运行 Writing Assistant 服务时）
 
 <Note>
-**Using the CRM Agent in Slack**
+**在 Slack 中使用 CRM Agent**
 
-To enable Slack integration, you will need to install the `slack_sdk` library. You can do this by running the following command:
+若需启用 Slack 集成，请先安装 `slack_sdk` 库，可运行：
 ```bash
 # pip install slack_sdk
 ```
-You will also need to run the python slack server file found in our examples directory:
+然后在示例目录中运行 Slack 服务器脚本：
 ```bash
 # python slack_server.py
 ```
 </Note>
-### Using the Streamlit Frontend for Testing
+### 使用 Streamlit 前端进行测试
 
-The Streamlit frontend provides an interactive web interface for testing all agents and their memory capabilities.
+Streamlit 前端提供了交互式 Web 界面，用于测试各个智能体及其记忆能力。
 
-**Starting the Frontend**
+**启动前端**
 
-**Prerequisites:**
+**前置条件：**
 
-- MemMachine backend running (see main README)
-- At least one agent server running (CRM, Financial, or Default)
-- Required environment variables set
+- MemMachine 后端已运行（参见主 README）
+- 至少启动一个智能体服务（CRM、Financial 或 Default）
+- 已设置所需环境变量
 
-Run the frontend:
+运行前端：
 
 ```bash
 cd agents/frontend
 streamlit run app.py
 ```
 
-Access the interface:
+访问界面：
 
-Open your browser to `http://localhost:8502`
+在浏览器中打开 `http://localhost:8502`
 
-**Frontend Features**
+**前端功能**
 
-**Model Configuration**
+**模型配置**
 
-- **Model Selection:** Choose from various LLM providers (OpenAI, Anthropic, DeepSeek, Meta, Mistral)
-- **API Key Management:** Configure API keys for different providers
-- **Model Parameters:** Adjust temperature, max tokens, and other settings
+- **模型选择：** 支持 OpenAI、Anthropic、DeepSeek、Meta、Mistral 等多家提供商
+- **API Key 管理：** 配置不同提供商的 API Key
+- **模型参数：** 调整温度、最大 tokens 等参数
 
-**Memory Testing**
+**记忆测试**
 
-- **Persona Management:** Create and manage different user personas
-- **Memory Storage:** Test memory storage and retrieval
-- **Context Search:** Search through stored memories
-- **Profile Management:** View and manage user profiles
+- **画像管理：** 创建并管理不同用户画像
+- **记忆存储：** 测试记忆写入与检索
+- **上下文搜索：** 在已存记忆中进行搜索
+- **画像管理：** 查看并维护用户画像
 
-**Agent Testing**
+**智能体测试**
 
-- **Real-time Chat:** Test conversations with different agents
-- **Memory Integration:** See how agents use stored memories
-- **Response Analysis:** Compare responses with and without memory context
-- **Rationale Display:** View how personas influence responses
+- **实时聊天：** 与不同智能体进行对话测试
+- **记忆集成：** 查看智能体如何利用存储的记忆
+- **响应分析：** 对比有无记忆上下文时的响应差异
+- **推理展示：** 观察画像如何影响最终回复
 
-**Testing Workflow**
+**测试流程**
 
 1. **Start Services:**
 
-   - **Terminal 1:** Start MemMachine backend
+   - **终端 1：** 启动 MemMachine 后端
 
      ```bash
      cd memmachine/src
      python -m server.app
      ```
 
-   - **Terminal 2:** Start an agent (e.g., CRM)
+   - **终端 2：** 启动某个智能体（例如 CRM）
 
      ```bash
      cd agents/crm
      python crm_server.py
      ```
 
-   - **Terminal 3:** Start the frontend
+   - **终端 3：** 启动前端
 
      ```bash
      cd agents/frontend
      streamlit run app.py
      ```
 
-2. **Configure the Frontend:**
+2. **配置前端：**
 
-   - Set the CRM Server URL (default: `http://localhost:8000`)
-   - Select your preferred model and provider
-   - Enter your API key
+   - 设置 CRM 服务器地址（默认 `http://localhost:8000`）
+   - 选择首选模型及提供商
+   - 输入你的 API Key
 
-3. **Test Memory Operations:**
+3. **测试记忆操作：**
 
-   - Create a new persona or use existing ones
-   - Send messages to test memory storage
-   - Use search functionality to retrieve memories
-   - Test different conversation patterns
+   - 新建或使用已有画像
+   - 发送消息测试记忆写入
+   - 使用搜索功能检索记忆
+   - 尝试不同对话模式
 
-4. **Analyze Results:**
+4. **分析结果：**
 
-   - View memory storage logs
-   - Compare responses with/without memory context
-   - Check persona influence on responses
+   - 查看记忆存储日志
+   - 对比有无记忆上下文的回复
+   - 检查画像对响应的影响
 
-**Environment Variables for Frontend**
+**前端所需环境变量**
 
 ```bash
-# Required for frontend functionality
+# 前端运行所需
 CRM_SERVER_URL=http://localhost:8000
 MODEL_API_KEY=your-openai-api-key
 OPENAI_API_KEY=your-openai-api-key
 
-# Optional: For other providers
+# 可选：用于其他模型提供商
 ANTHROPIC_API_KEY=your-anthropic-key
 AWS_ACCESS_KEY_ID=your-aws-key
 AWS_SECRET_ACCESS_KEY=your-aws-secret
 ```
 
-**Troubleshooting Frontend Issues**
+**前端问题排查**
 
-**Common Issues:**
+**常见问题：**
 
-- **Connection Refused:** Ensure the agent server is running
-- **API Key Errors:** Verify your API keys are correct
-- **Memory Not Storing:** Check MemMachine backend is running
-- **Model Not Responding:** Verify model selection and API key
+- **连接被拒绝：** 确认智能体服务已启动
+- **API Key 错误：** 检查密钥是否正确
+- **记忆未写入：** 确认 MemMachine 后端正常运行
+- **模型无响应：** 检查模型选择和 API Key 设置
 
-**Debug Mode:**
+**调试模式：**
 
-- Run with debug logging
+- 通过调试日志运行
 
   ```bash
   LOG_LEVEL=DEBUG streamlit run app.py
   ```
 
-**Frontend Architecture**
+**前端架构**
 
-The frontend consists of:
+前端主要由以下文件组成：
 
-- `app.py`: Main Streamlit application
-- `llm.py`: LLM integration and chat functionality
-- `gateway_client.py`: API client for agent communication
-- `model_config.py`: Model configuration and provider mapping
-- `styles.css`: Custom styling for the interface
+- `app.py`：Streamlit 主应用
+- `llm.py`：LLM 集成与对话逻辑
+- `gateway_client.py`：与智能体通信的 API 客户端
+- `model_config.py`：模型配置与提供商映射
+- `styles.css`：界面样式定制
 
-**Configuration**
+**配置说明**
 
-**Environment Variables**
+**环境变量**
 
-| Variable                | Description                                 | Default                 |
-| ---------------------   | ------------------------------------------- | ----------------------- |
-| `MEMORY_BACKEND_URL`    | URL of the MemMachine backend service       | `http://localhost:8080` |
-| `OPENAI_API_KEY`        | OpenAI API key for LLM access               | Required                |
-| `EXAMPLE_SERVER_PORT`   | Port for example server                     | `8000`                  |
-| `CRM_PORT`              | Port for CRM server                         | `8000`                  |
-| `FINANCIAL_PORT`        | Port for financial analyst server           | `8000`                  |
-| `HEALTH_PORT`           | Port for health check endpoint              | `8000`                  |
-| `WRITING_ASSISTANT_PORT`| Port for the writing assistant server.      | `8000`                  |
-| `LOG_LEVEL`             | Logging level (DEBUG, INFO, WARNING, ERROR) | `INFO`                  |
+| 变量名称                | 说明                                         | 默认值                  |
+| ---------------------   | -------------------------------------------- | ----------------------- |
+| `MEMORY_BACKEND_URL`    | MemMachine 后端服务地址                      | `http://localhost:8080` |
+| `OPENAI_API_KEY`        | 访问 LLM 所需 OpenAI API Key                 | 必填                    |
+| `EXAMPLE_SERVER_PORT`   | 示例服务器端口                               | `8000`                  |
+| `CRM_PORT`              | CRM 服务器端口                               | `8000`                  |
+| `FINANCIAL_PORT`        | 财务分析服务器端口                           | `8000`                  |
+| `HEALTH_PORT`           | 健康检查端口                                 | `8000`                  |
+| `WRITING_ASSISTANT_PORT`| 写作助手服务器端口                           | `8000`                  |
+| `LOG_LEVEL`             | 日志级别（DEBUG、INFO、WARNING、ERROR）      | `INFO`                  |
 
-**MemMachine Integration**
+**MemMachine 集成方式**
 
-All agents integrate with the MemMachine backend by:
+所有智能体都通过以下方式集成 MemMachine 后端：
 
-- Storing conversation episodes as memories
-- Retrieving relevant context for queries
-- Using profile information for personalized responses
-- Maintaining conversation history and context
+- 将对话片段存储为记忆
+- 为查询检索相关上下文
+- 利用画像信息实现个性化响应
+- 保持会话历史与上下文

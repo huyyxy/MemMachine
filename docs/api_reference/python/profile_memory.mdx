@@ -1,62 +1,61 @@
 ---
-title: "Profile Memory" 
-description: "The ProfileMemory module and class provides a high-level interface for creating and managing profile memory." 
+title: "画像记忆" 
+description: "ProfileMemory 模块与类提供创建、管理画像记忆的高级接口。" 
 icon: "user"
 ---
 
-`ProfileMemory` is the central brain behind your user profiles. It's a smart, self-contained component that listens to a user's conversation history and builds a detailed, searchable profile from it. Think of it as a helpful assistant that remembers all the important details about a user for you.
+`ProfileMemory` 是用户画像的核心大脑。它会持续监听用户的对话历史，将关键信息整理成结构化、可搜索的画像数据，就像一位随身助理，替你记住所有重要细节。
 
-At its core, `ProfileMemory` uses advanced language models to intelligently extract and organize profile information. It stores this data, along with searchable vector embeddings, in a database. This allows for super-fast, high-quality searches that go beyond simple keywords.
+其核心能力依赖先进的大语言模型，智能抽取并整理画像信息，同时生成可检索的向量嵌入存入数据库，实现远超关键词匹配的高质量搜索。
 
-## How It Works
+## 工作原理
 
-The magic of `ProfileMemory` lies in its ability to:
+`ProfileMemory` 的关键能力包括：
 
-- **Ingest messages:** It takes in new messages and learns from them, continuously updating a user's profile.
-- **Consolidate and simplify:** To keep profiles accurate and easy to manage, it intelligently combines similar information and removes redundant entries.
-- **Search efficiently:** It allows you to perform semantic searches, which find relevant information even if the exact words aren't used.
-- **Cache for speed:** It keeps frequently used profiles handy in a cache so you get faster results when you need them.
+- **消息摄取：** 接收并学习新的对话消息，不断更新用户画像。
+- **合并简化：** 自动合并相似信息、移除冗余条目，保持画像准确、易维护。
+- **高效检索：** 支持语义搜索，即使不使用完全一致的词语，也能找到相关信息。
+- **缓存提速：** 将常用画像缓存，确保频繁查询时响应更快。
 
-## `ProfileMemory` Methods
+## `ProfileMemory` 方法概览
 
-Here's a breakdown of the key methods you'll use to interact with `ProfileMemory`.
+以下为与 `ProfileMemory` 交互时最常用的方法。
 
-### 1. Lifecycle Methods
+### 1. 生命周期方法
 
 #### `startup()`
 
-**What it does:** This is the first method you'll call. It gets `ProfileMemory` up and running by initializing all the necessary resources, like the database connection pool.
+**作用：** 初始化 `ProfileMemory` 所需资源（如数据库连接池），让组件进入工作状态。
 
 ```python
 await profile_memory_instance.startup()
 ```
 
-#### **`cleanup()`**
+#### `cleanup()`
 
-**What it does:** This method gracefully shuts down the `ProfileMemory` instance by closing resources, like the database connection pool, when you're finished.
+**作用：** 在使用结束时关闭数据库连接池等资源，优雅地关闭 `ProfileMemory` 实例。
 
 ```python
 await profile_memory_instance.cleanup()
 ```
 
-### 2. Ingestion and Automatic Update
+### 2. 数据摄取与自动更新
 
 #### `add_persona_message()`
 
-**What it does:** This is the core ingestion method. You send it a message, and `ProfileMemory` adds it to the user's conversation history. Periodically (after a set number of messages, defined by `_update_interval`), it will use these new messages to automatically update and consolidate the user's profile.
+**作用：** 核心摄取方法。向其提供新消息后，`ProfileMemory` 会将其写入对话历史；当累积的消息达到 `_update_interval` 阈值时，会自动触发画像更新与整合。
 
-| Parameter    | Type             | Default | Description                                            |
-| ------------ | ---------------- | ------- | ------------------------------------------------------ |
-| `content`    | `str`            |         | The message content (required).                        |
-| `metadata`   | `dict[str, str]` | `None`  | Optional metadata for the message (e.g., who said it). |
-| `isolations` | `dict`           | `None`  | A dictionary for data isolation.                       |
-| `user_id`    | `str`            | `""`    | The ID of the user.                                    |
+| 参数          | 类型             | 默认值 | 说明                                   |
+| ------------- | ---------------- | ------ | -------------------------------------- |
+| `content`     | `str`            |        | 消息内容（必填）。                     |
+| `metadata`    | `dict[str, str]` | `None` | 可选元数据（例如发送人）。             |
+| `isolations`  | `dict`           | `None` | 数据隔离字典。                         |
+| `user_id`     | `str`            | `""`   | 用户 ID。                               |
 
-**Returns:** `bool` - A boolean indicating whether the asynchronous profile **consolidation process was triggered and awaited**.
+**返回值：** `bool` —— 指示是否已触发并等待异步画像整合流程。
 
 ```python
-# The method will asynchronously trigger a profile update and consolidation
-# if the internal message count threshold is met.
+# 当内部计数达到阈值时，该方法会异步触发画像更新与整合。
 await profile_memory_instance.add_persona_message(
     user_id="user_123",
     content="I love to go hiking on weekends, especially in the Rockies.",
@@ -64,18 +63,18 @@ await profile_memory_instance.add_persona_message(
 )
 ```
 
-### 3. CRUD Operations
+### 3. CRUD 操作
 
-#### **`get_user_profile()`**
+#### `get_user_profile()`
 
-**What it does:** This method retrieves a user's entire profile. For better performance, it first checks a cache before looking up the data in the database.
+**作用：** 获取指定用户的完整画像。方法会先查缓存，再访问数据库以优化性能。
 
-| Parameter    | Type   | Default | Description                                                  |
-| ------------ | ------ | ------- | ------------------------------------------------------------ |
-| `user_id`    | `str`  |         | The ID of the user whose profile you want to retrieve.       |
-| `isolations` | `dict` | `None`  | A dictionary for data isolation, allowing you to get a specific subset of the profile. |
+| 参数          | 类型   | 默认值 | 说明                                                         |
+| ------------- | ------ | ------ | ------------------------------------------------------------ |
+| `user_id`     | `str`  |        | 目标用户 ID。                                                |
+| `isolations`  | `dict` | `None` | 数据隔离配置，可获取画像的特定子集。                        |
 
-**Returns:** The raw user's profile data (a list of profile entries).
+**返回值：** 用户画像原始数据（画像条目列表）。
 
 ```python
 profile = await profile_memory_instance.get_user_profile(
@@ -86,17 +85,17 @@ profile = await profile_memory_instance.get_user_profile(
 
 #### `add_new_profile()`
 
-**What it does:** Use this method to manually add a new piece of information (a "feature") to a user's profile. This is useful for adding foundational information that isn't learned from a conversation.
+**作用：** 手动为用户画像添加一条新信息（“特征”）。适用于补充对话之外的重要数据。
 
-| Parameter    | Type             | Default | Description                                              |
-| ------------ | ---------------- | ------- | -------------------------------------------------------- |
-| `user_id`    | `str`            |         | The ID of the user.                                      |
-| `feature`    | `str`            |         | The name of the profile feature (e.g., "hobbies").       |
-| `value`      | `str`            |         | The value for the feature (e.g., "hiking").              |
-| `tag`        | `str`            |         | A category for the feature (e.g., "leisure").            |
-| `metadata`   | `dict[str, str]` | `None`  | Additional metadata for the entry.                       |
-| `isolations` | `dict`           | `None`  | A dictionary for data isolation.                         |
-| `citations`  | `list[int]`      | `None`  | A list of message IDs that are sources for this feature. |
+| 参数          | 类型             | 默认值 | 说明                                          |
+| ------------- | ---------------- | ------ | --------------------------------------------- |
+| `user_id`     | `str`            |        | 用户 ID。                                     |
+| `feature`     | `str`            |        | 画像特征名称（如 “hobbies”）。                 |
+| `value`       | `str`            |        | 特征对应的值（如 “hiking”）。                  |
+| `tag`         | `str`            |        | 特征所属类别（如 “leisure”）。                 |
+| `metadata`    | `dict[str, str]` | `None` | 附加元数据。                                  |
+| `isolations`  | `dict`           | `None` | 数据隔离配置。                                |
+| `citations`   | `list[int]`      | `None` | 提供该特征的消息 ID 列表。                     |
 
 ```python
 await profile_memory_instance.add_new_profile(
@@ -110,12 +109,12 @@ await profile_memory_instance.add_new_profile(
 
 #### `delete_user_profile()`
 
-**What it does:** Deletes an entire user profile.
+**作用：** 删除整个用户画像。
 
-| Parameter    | Type   | Default | Description                                       |
-| ------------ | ------ | ------- | ------------------------------------------------- |
-| `user_id`    | `str`  |         | The ID of the user whose profile will be deleted. |
-| `isolations` | `dict` | `None`  | A dictionary for data isolation.                  |
+| 参数          | 类型   | 默认值 | 说明                              |
+| ------------- | ------ | ------ | --------------------------------- |
+| `user_id`     | `str`  |        | 需删除画像的用户 ID。             |
+| `isolations`  | `dict` | `None` | 数据隔离配置。                    |
 
 ```python
 await profile_memory_instance.delete_user_profile(user_id="user_123")
@@ -123,15 +122,15 @@ await profile_memory_instance.delete_user_profile(user_id="user_123")
 
 #### `delete_user_profile_feature()`
 
-**What it does:** Deletes a specific feature from a user's profile, optionally targeted by a specific value.
+**作用：** 删除用户画像中的某个特征，可选指定特定值。
 
-| Parameter    | Type   | Default | Description                                                  |
-| ------------ | ------ | ------- | ------------------------------------------------------------ |
-| `user_id`    | `str`  |         | The ID of the user.                                          |
-| `feature`    | `str`  |         | The profile feature to delete.                               |
-| `tag`        | `str`  |         | The tag of the feature to delete.                            |
-| `value`      | `str`  | `None`  | The specific value to delete. If `None`, all values for that feature and tag are deleted. |
-| `isolations` | `dict` | `None`  | A dictionary for data isolation.                             |
+| 参数          | 类型   | 默认值 | 说明                                                         |
+| ------------- | ------ | ------ | ------------------------------------------------------------ |
+| `user_id`     | `str`  |        | 用户 ID。                                                    |
+| `feature`     | `str`  |        | 需要删除的画像特征。                                         |
+| `tag`         | `str`  |        | 目标特征的标签。                                             |
+| `value`       | `str`  | `None` | 具体要删除的值；若为 `None`，则删除该特征在该标签下的所有值。 |
+| `isolations`  | `dict` | `None` | 数据隔离配置。                                               |
 
 ```python
 await profile_memory_instance.delete_user_profile_feature(
@@ -143,49 +142,49 @@ await profile_memory_instance.delete_user_profile_feature(
 
 #### `delete_all()`
 
-**What it does:** **Use this method with caution!** It completely wipes all user profiles from the database and clears the cache. This is typically used for development and testing.
+**作用：** **务必谨慎使用！** 清空数据库中的全部画像，并清除缓存，通常用于开发与测试场景。
 
 ```python
 await profile_memory_instance.delete_all()
 ```
 
-### 4. Search and Filtering
+### 4. 检索与筛选
 
 #### `semantic_search()`
 
-**What it does:** This powerful method allows you to search a user's profile for specific information. It's a "semantic" search, which means it understands the *meaning* of your query, not just the exact words.
+**作用：** 在用户画像中执行语义搜索，通过理解查询含义而非仅匹配字面词汇来找到相关信息。
 
-| Parameter    | Type    | Default     | Description                                                  |
-| ------------ | ------- | ----------- | ------------------------------------------------------------ |
-| `query`      | `str`   |             | The search query string (e.g., "Where does the user live?"). |
-| `k`          | `int`   | `1_000_000` | The maximum number of results to retrieve from the database. |
-| `min_cos`    | `float` | `-1.0`      | The minimum cosine similarity score to consider.             |
-| `max_range`  | `float` | `2.0`       | The maximum range (max-min similarity) for the result filter. |
-| `max_std`    | `float` | `1.0`       | The maximum standard deviation for the result filter.        |
-| `isolations` | `dict`  | `None`      | A dictionary for data isolation.                             |
-| `user_id`    | `str`   | `""`        | The ID of the user you are searching.                        |
+| 参数          | 类型    | 默认值     | 说明                                                         |
+| ------------- | ------- | ---------- | ------------------------------------------------------------ |
+| `query`       | `str`   |            | 查询字符串，如 “Where does the user live?”。
+| `k`           | `int`   | `1_000_000`| 从数据库检索的最大结果数量。                                 |
+| `min_cos`     | `float` | `-1.0`     | 最小余弦相似度阈值。                                         |
+| `max_range`   | `float` | `2.0`      | 结果过滤的最大范围（最大值减最小值）。                       |
+| `max_std`     | `float` | `1.0`      | 结果过滤的最大标准差。                                       |
+| `isolations`  | `dict`  | `None`     | 数据隔离配置。                                               |
+| `user_id`     | `str`   | `""`       | 目标用户 ID。                                                 |
 
-**Returns:** `list[Any]` - A list of matching profile entries, filtered by similarity scores.
+**返回值：** `list[Any]` —— 根据相似度过滤后的画像条目列表。
 
 ```python
 results = await profile_memory_instance.semantic_search(
     user_id="user_123",
     query="what are they interested in for fun?",
-    max_range=0.1 # Tighter filter for high relevance
+    max_range=0.1  # 提高相关性要求
 )
 ```
 
 #### `get_large_profile_sections()`
 
-**What it does:** Retrieves groups of profile entries (sections) that share the same `feature` and `tag` and exceed a specific count threshold. This is primarily used internally to identify profile sections that are large enough to require **consolidation** (deduplication) by the Language Model.
+**作用：** 检索具有相同 `feature` 与 `tag` 且数量超过指定阈值的画像分区，主要用于识别需由语言模型执行**整合去重**的区域。
 
-| Parameter    | Type   | Default | Description                                                  |
-| ------------ | ------ | ------- | ------------------------------------------------------------ |
-| `user_id`    | `str`  |         | The ID of the user.                                          |
-| `thresh`     | `int`  | `5`     | The minimum number of entries for a section to be considered "large." |
-| `isolations` | `dict` | `None`  | A dictionary for data isolation.                             |
+| 参数          | 类型   | 默认值 | 说明                                                         |
+| ------------- | ------ | ------ | ------------------------------------------------------------ |
+| `user_id`     | `str`  |        | 用户 ID。                                                    |
+| `thresh`      | `int`  | `5`    | 被视为“大型”分区的最小条目数量。                              |
+| `isolations`  | `dict` | `None` | 数据隔离配置。                                               |
 
-**Returns:** `list[list[dict[str, Any]]]` - A list of large profile sections, where each section is a list of profile entries.
+**返回值：** `list[list[dict[str, Any]]]` —— 大型画像分区列表，每个分区是画像条目的列表。
 
 ```python
 sections_to_consolidate = await profile_memory_instance.get_large_profile_sections(

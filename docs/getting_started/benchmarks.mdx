@@ -1,65 +1,65 @@
 ---
-title: "Benchmark Evaluations"
-description: "A Toolset for Testing Your MemMachine"
+title: "基准测试"
+description: "检验 MemMachine 的工具集"
 icon: "chart-line"
 ---
 
-Welcome to the MemMachine evaluation toolset! We've created a simple tool to help you measure the performance, response quality, and LoCoMo score of your MemMachine instance.
+欢迎使用 MemMachine 的评估工具集！我们提供了一套简单的工具，用于衡量 MemMachine 实例的性能、响应质量以及 LoCoMo 评分。
 
-**Episodic Memory Tool Set:** This tool measures how fast and accurately MemMachine performs core episodic memory tasks. For a list of specific commands, check out the [Episodic Memory Tool Set](https://github.com/MemMachine/MemMachine/blob/main/evaluation/locomo/episodic_memory/README.md).
+**情景记忆工具集：** 该工具用于评估 MemMachine 在执行核心情景记忆任务时的速度与准确性。具体命令可参考 [Episodic Memory Tool Set](https://github.com/MemMachine/MemMachine/blob/main/evaluation/locomo/episodic_memory/README.md)。
 
 
-## Getting Started
+## 快速开始
 
-Before you run any benchmarks, you'll need to set up your environment.
+在运行基准测试之前，请先完成环境准备。
 
-**General Prerequisites:**
+**通用前提条件：**
 
-- **MemMachine Backend:** Both tools require that your MemMachine backend be installed and configured. If you need help with this, you can check out our [QuickStart Guide](http://docs.memmachine.ai/getting_started/quickstart).
+- **MemMachine 后端：** 所有工具都需要已安装并配置好的 MemMachine 后端。若需要协助，请参阅我们的 [快速入门指南](http://docs.memmachine.ai/getting_started/quickstart)。
 
-- **Start the Backend:** Once everything is set up, start MemMachine with this command:
+- **启动后端：** 完成配置后，使用以下命令启动 MemMachine：
 
   ```sh
   memmachine-server
   ```
 
-**Tool-Specific Prerequisites:**
+**工具专属前提条件：**
 
-Please ensure your `cfg.yml` file has been copied into your `locomo` directory (`/memmachine/evaluation/locomo/`) and renamed to `locomo_config.yaml`.
+请将你的 `cfg.yml` 复制到 `locomo` 目录（`/memmachine/evaluation/locomo/`）并重命名为 `locomo_config.yaml`。
 
-## Running the Benchmark
+## 运行基准测试
 
-Ready to go? Follow these simple steps. 
+准备就绪后，按照以下步骤操作。
 
-**A.** All commands should be run from their respective tool directory (default `locomo/episodic_memory/`).
+**A.** 所有命令需在对应工具目录下执行（默认为 `locomo/episodic_memory/`）。
 
-**B.** The path to your data file, `locomo10.json`, should be updated to match its location. By default, you can find it in `/memmachine/evaluation/locomo/`.
+**B.** 请根据文件实际位置，更新数据文件 `locomo10.json` 的路径。默认路径为 `/memmachine/evaluation/locomo/`。
 
-**C.** Once you have performed step 1 below, you can repeat the benchmark run by performing steps 2-4.  Once are you finished performing the benchmark, run step 5.
+**C.** 完成第 1 步后，可以反复运行第 2-4 步进行测试，最终执行第 5 步清理。
 
-**Note:** Although the process is simple, the commands for each type of Tool Set may differ.  Please refer to the [Episodic Memory Tool Set](https://github.com/MemMachine/MemMachine/blob/main/evaluation/locomo/episodic_memory/README.md) for the exact commands to run for each step.
+**提示：** 虽然流程简单，但不同工具集的命令可能略有差异。请参考 [Episodic Memory Tool Set](https://github.com/MemMachine/MemMachine/blob/main/evaluation/locomo/episodic_memory/README.md) 获取每一步的具体命令。
 
 <Steps>
-<Step title="Ingest a Conversation">
+<Step title="导入会话数据">
 
-First, let's add conversation data to MemMachine. This only needs to be done once per test run.
-
-</Step>
-<Step title="Search the Conversation">
-
-Let's search through the data you just added.
+首先，把会话数据写入 MemMachine。每次测试仅需执行一次。
 
 </Step>
-<Step title="Evaluate the Responses">
+<Step title="搜索会话内容">
 
-Next, run a LoCoMo evaluation against the search results.
+检索刚才导入的数据。
 
 </Step>
-<Step title="Generate Your Final Score">
+<Step title="评估响应质量">
 
-Once the evaluation is complete, you can generate the final scores.
+使用 LoCoMo 对检索结果进行评估。
 
-The output will be a table in your shell showing the mean scores for each category and an overall score, like the example below:
+</Step>
+<Step title="生成最终得分">
+
+评估完成后，生成最终得分。
+
+终端将输出一张表格，展示各类别的平均分及整体得分，如下示例：
 
 ```sh
 Mean Scores Per Category:
@@ -76,9 +76,9 @@ dtype: float64
 ```
 
 </Step>
-<Step title="Clean Up Your Data">
+<Step title="清理测试数据">
 
-When you're finished, you may want to delete the test data.
+测试结束后，可根据需要删除测试数据。
 
 </Step>
 </Steps>

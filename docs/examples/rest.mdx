@@ -1,35 +1,35 @@
 ---
 title: "REST API"
-description: "Examples for using MemMachine's REST API"
+description: "使用 MemMachine REST API 的示例"
 icon: "bed"
 ---
 
-# REST API Examples
+# REST API 示例
 
 
- ## Hello World: A Guide to the MemMachine RESTful API
+ ## Hello World：MemMachine RESTful API 指南
 
-This guide provides a quick and simple way to get started with the MemMachine RESTful API using `curl` commands.  It can also be found in our [Quick Start Guide](https://memmachine.ai/docs/getting-started/quick-start-guide).
+本指南将通过 `curl` 命令带你快速上手 MemMachine 的 RESTful API。你也可以在我们的 [快速入门指南](https://memmachine.ai/docs/getting-started/quick-start-guide) 中找到同样内容。
 
-### Prerequisites
+### 前置条件
 
-First, make sure your FastAPI application is running. Open your terminal, navigate to the directory containing your `app.py` file, and run the following command. The output should confirm that the server is listening for requests.
+首先确保 FastAPI 应用已经运行。在终端中进入包含 `app.py` 的目录，执行以下命令并确认服务器已开始监听请求。
 
 ```
 uvicorn app:app --reload
 ```
 <Steps>
-<Step title="Get All Sessions">
+<Step title="获取所有会话">
 
-The simplest way to start is by checking for existing sessions. This `GET` request doesn't require any data. You will likely see an empty list since no sessions have been created yet.
+最简单的起点是查看当前会话。此 `GET` 请求无需附带数据，因为尚未创建会话，所以通常会看到空列表。
 
 ```
 curl http://127.0.0.1:8080/v1/sessions
 ```
 </Step>
-<Step title="Add a New Memory">
+<Step title="新增记忆片段">
 
-This is where you'll create your first memory episode. The `POST /v1/memories` endpoint requires a JSON body that includes session details, a producer, a recipient, and the content of the memory itself.
+接下来创建第一条记忆片段。`POST /v1/memories` 端点需要一个 JSON 请求体，包含会话信息、生产者、接收者和记忆内容。
 
 **Command:**
 
@@ -51,13 +51,13 @@ curl -X POST "http://127.0.0.1:8080/v1/memories" \
 }'
 ```
 
-**Expected Output:**
+**预期结果：**
 
-You will receive an empty `200 OK` response, confirming the memory was added successfully.
+你会收到空的 `200 OK` 响应，表示记忆已成功写入。
 </Step>
-<Step title="Search for the Memory">
+<Step title="检索记忆片段">
 
-Now that a memory has been added, let's try to find it. The `POST /v1/memories/search` endpoint also requires a JSON body to specify the search query and session.
+写入记忆后，尝试检索。`POST /v1/memories/search` 同样需要 JSON 请求体，用于指定查询条件和会话信息。
 
 **Command:**
 
@@ -77,13 +77,13 @@ curl -X POST "http://127.0.0.1:8080/v1/memories/search" \
 }'
 ```
 
-**Expected Output:**
+**预期结果：**
 
-You should see a `200 OK` response containing the search results, including the memory episode you just added. The output will be formatted as a JSON object, confirming that your memory was successfully found.
+你会得到 `200 OK` 响应，JSON 结果中包含刚刚创建的记忆片段，确认检索成功。
 </Step>
-<Step title=" Delete the Session Data">
+<Step title="删除会话数据">
 
-To clean up after your test, you can use the `DELETE /v1/memories` endpoint. This also requires a JSON body to specify which session's data should be removed.
+测试完成后，可通过 `DELETE /v1/memories` 清理会话数据，同样需要 JSON 请求体来指定目标会话。
 
 **Command:**
 

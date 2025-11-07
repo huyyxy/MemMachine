@@ -1,53 +1,52 @@
 ---
-title: "Configuration"
-description: "Fine-Tuning Your MemMachine API"
+title: "配置指南"
+description: "按需调优你的 MemMachine API"
 icon: "gear"
 ---
-## Configuring MemMachine
+## 配置 MemMachine
 
-MemMachine has one primary file that is used for configuration, `cfg.yml`.
+MemMachine 的主要配置文件是 `cfg.yml`。
 
-Understanding Configuration Settings
-You can customize your application's settings with two types of configuration: **Global** and **Local**.
- - **Global Configuration** acts as the ***default*** setting for all your applications. Think of it as your standard setup that everything uses unless told otherwise.  This file should reside in your Project root directory.
- - **Local Configuration** is used when you need to make specific, one-time adjustments for a single session or task.  This is best for situations where you have multiple agents, and wish to configure each agent differently.  The file should reside in the root directory for each individual agent.
+你可以通过两类配置自定义应用行为：**全局配置**与**本地配置**。
+- **全局配置**：作为所有应用的***默认***设置，除非被覆盖，否则始终生效。建议保存于项目根目录。
+- **本地配置**：用于某个会话或任务的特定调节，适合多智能体场景（给不同智能体提供不同配置）。相应文件应放在每个智能体的根目录。
 
-When a local configuration is present, it will take priority and override the global settings, so you can easily make temporary changes without affecting your main setup. The only exception to this is for plugin configurations, which always use the global settings.
+当同时存在本地配置时，它会优先覆盖全局配置，帮助你在不影响全局的情况下临时调整。唯一的例外是插件配置，始终使用全局设置。
 
-You can set up both types of configuration in the `cfg.yml` file using YAML syntax. Below, we will explore the various configuration options available to you.
+在 `cfg.yml` 中可以使用 YAML 语法设置上述配置。下文列出了各类可用项及示例。
 
-## Tailor MemMachine to Your Needs
+## 根据需求自定义 MemMachine
 
-Check out the following configuration options, an example of how to set, where to set, and a link to more information about the variable options.
+以下列出常用配置项、设置示例、建议放置位置以及更多说明链接：
 
 <AccordionGroup>
-  <Accordion title="Logging">
+  <Accordion title="日志 (Logging)">
 
-Logging parameters manage the path and level of logging desired.
-| Parameter              | Required? | Default       | Description                                                  |
-| ---------------------- | --------- | ----------------- | -------------------------------------------------------- |
-| `path`                 | No        | `/tmp/memory_log` | Sets the path and file name where logging will be kept.  |
-| `level`                | No        | `info`            | Choice between three levels: info, debug, or error       |
+用于控制日志存储路径与日志级别。
+| 参数        | 必填？ | 默认值             | 说明                                      |
+| ----------- | ------ | ------------------ | ----------------------------------------- |
+| `path`      | 否     | `/tmp/memory_log`  | 日志文件的保存路径与文件名。              |
+| `level`     | 否     | `info`             | 可选 `info`、`debug`、`error` 三种级别。   |
 
-An example of these parameters in a config file would look like the following:
+配置示例：
 ```YAML
 logging:
   path: /tmp/memory_log
   level: info #| debug | error
 ```
 </Accordion>
-<Accordion title="Long-Term Memory">
+<Accordion title="长期记忆 (Long-Term Memory)">
 
-Parameters that pertain to Long-Term memory settings.
-| Parameter                     | Required? | Default       | Description                                                  |
-| ----------------------------- | --------- | ------------- | ------------------------------------------------------------ |
-| `derivative_deriver`          | No        | `sentence`    | Sets the method for deriving new, insightful information from a memory's content (can choose `identity` or `sentence`). |
-| `metadata_derivative_format`  | No        | N/A           | A template string for formatting derived metadata from memory content. Uses bracket notation to pull properties like `user_metadata[source_timestamp]` and `isolation_properties[producer_id]`. |
-| `embedder`                    | No        | N/A           | The ID of the `embedder` model to use for generating vector embeddings for long-term memory. |
-| `reranker`                    | No        | N/A           | The ID of the `reranker` to use for reordering search results to improve relevance. |
-| `vector_graph_store`          | No        | N/A           | The ID of the `storage` vendor to use for long-term memory and vector graph storage. |
+用于配置长期记忆相关参数。
+| 参数                        | 必填？ | 默认值     | 说明                                                         |
+| --------------------------- | ------ | ---------- | ------------------------------------------------------------ |
+| `derivative_deriver`        | 否     | `sentence` | 指定从记忆内容提炼新信息的方法，可选 `identity` 或 `sentence`。 |
+| `metadata_derivative_format`| 否     | N/A        | 用于格式化派生元数据的模板字符串，可引用 `user_metadata[source_timestamp]`、`isolation_properties[producer_id]` 等。 |
+| `embedder`                  | 否     | N/A        | 长期记忆使用的向量嵌入模型 ID。                              |
+| `reranker`                  | 否     | N/A        | 重排器 ID，用于提升检索结果相关性。                          |
+| `vector_graph_store`        | 否     | N/A        | 长期记忆与向量图存储使用的存储供应商 ID。                    |
 
-An example of these parameters in a config file would look like the following:
+配置示例：
 ```YAML
 long_term_memory:
   derivative_deriver: sentence
@@ -57,15 +56,15 @@ long_term_memory:
   vector_graph_store: my_storage_id
 ```
 </Accordion>
-<Accordion title="Profile Memory">
+<Accordion title="画像记忆 (Profile Memory)">
 
-Parameters that pertain to Profile memory settings.
-| Parameter                     | Required? | Default           | Description                                                    |
-| ----------------------------- | --------- | ----------------- | -------------------------------------------------------------- |
-| `llm_model`                   | Yes       | testmodel         | The language model for profile extraction.                     |
-| `embedding_model`             | Yes       | N/A               | The model for generating vector embeddings for profile memory. |
-| `database`                    | Yes       | `profile_storage` | Connection to the profile database.  Passing this default allows you to establish all other variables within that subsection.|
-| `prompt`                      | Yes       | `profile_prompt`. | The system prompts to be used for profile memory.              |
+用于配置画像记忆相关参数。
+| 参数                | 必填？ | 默认值             | 说明                                                         |
+| ------------------- | ------ | ------------------ | ------------------------------------------------------------ |
+| `llm_model`         | 是     | `testmodel`        | 画像信息抽取所用的语言模型。                                 |
+| `embedding_model`   | 是     | N/A                | 画像记忆使用的向量嵌入模型。                                 |
+| `database`          | 是     | `profile_storage`  | 画像数据库连接配置，使用默认值可在该子节中定义其余字段。     |
+| `prompt`            | 是     | `profile_prompt`   | 画像记忆所用的系统提示词。                                    |
 
 
 ```YAML
@@ -77,32 +76,33 @@ profile_memory:
 ```
 </Accordion>
 <Accordion title="SessionDB">
-There is only one parameter for SessionDB, which is the connection URI.
-| Parameter                     | Required? | Default              | Description                                                    |
-| ----------------------------- | --------- | -------------------- | -------------------------------------------------------------- |
-| `uri`                         | Yes       | sqlitetest.db        | A configuration dictionary containing the database connection URI. If this field is blank, MemMachine will create an SQLitetest.db. |               |
 
-An example of these parameters in a config file would look like the following:
+SessionDB 只包含一个参数，即数据库连接 URI。
+| 参数   | 必填？ | 默认值         | 说明                                                         |
+| ------ | ------ | -------------- | ------------------------------------------------------------ |
+| `uri`  | 是     | `sqlitetest.db`| 数据库连接 URI。如未指定，MemMachine 会自动创建 `SQLitetest.db`。 |
+
+配置示例：
 ```YAML
 SessionDB:
   uri: sqlitetest.db
 ```
 </Accordion>
-<Accordion title="Model">
+<Accordion title="模型 (Model)">
 
-The model parameters are used to establish the LLM model to be used with MemMachine.  
+用于指定 MemMachine 所使用的 LLM。
 
-<Note> The 'another_model_id` can be any unique identifier you choose. Just be sure you use that unique identifier when referencing the model elsewhere in your configuration.  Example holds AWS Bedrock required configuration information </Note>
-| Parameter                     | Required? | Default           | Description                                                       |
-| ----------------------------- | --------- | ----------------- | ----------------------------------------------------------------- |
-| `testmodel`                   | Yes       |  `testmodel`      | This is the default configuration ID for MemMachine using openai. |
-| `model_vendor`                | Yes       | 'openai'          | The vendor of the model (e.g., `openai`, `amazon-bedrock`).       |
-| `model_name`                  | Yes       | "gpt-4o-mini"     | The name of the model to use (e.g., `gpt-4o-mini`).               |
-| `api_key`                     | Yes       |  N/A              | Only required if using openai, required if using default set up   |
-| `another_model_id`            | No        | `another_model_id`| Unique identifier for another model configuration.                |  
-| `region`                      | No        | N/A               | The AWS region for the Bedrock model (e.g., `us-west-2`).         |
-| `aws_access_key_id`           | No        | N/A               | The AWS access key ID for Bedrock authentication.                 |
-| `aws_secret_access_key`       | No        | N/A               | The AWS secret access key for Bedrock authentication.             |
+<Note>`another_model_id` 可以是你自定义的任意唯一标识，但在配置中引用该模型时需使用相同标识。示例展示了 AWS Bedrock 的必要配置。</Note>
+| 参数                | 必填？ | 默认值              | 说明                                                         |
+| ------------------- | ------ | ------------------- | ------------------------------------------------------------ |
+| `testmodel`         | 是     | `testmodel`         | 使用 OpenAI 时的默认配置 ID。                                 |
+| `model_vendor`      | 是     | `openai`            | 模型提供商（如 `openai`、`amazon-bedrock`）。                 |
+| `model_name`        | 是     | `"gpt-4o-mini"`    | 具体模型名称。                                                |
+| `api_key`           | 是     | N/A                 | 使用 OpenAI 或默认配置时需提供 API Key。                      |
+| `another_model_id`  | 否     | `another_model_id`  | 其它模型配置的唯一标识。                                      |
+| `region`            | 否     | N/A                 | Bedrock 模型的 AWS 区域（如 `us-west-2`）。                   |
+| `aws_access_key_id` | 否     | N/A                 | Bedrock 认证所需的访问密钥 ID。                               |
+| `aws_secret_access_key`| 否  | N/A                 | Bedrock 认证所需的密钥。                                      |
 
 An example of these parameters in a config file would look like the following:
 ```YAML
@@ -119,26 +119,27 @@ Model:
     model_id: "openai.gpt-oss-20b-1:0"
 ```
 </Accordion>
-<Accordion title="Storage">
-Parameters that pertain to Storage settings.
+<Accordion title="存储 (Storage)">
 
-The Storage database that can be chosen for our Memory to use. You need to set parameters for both `my_storage_id` and `profile_storage` to use different databases for long-term memory and profile memory respectively.
-<Note> Only the Neo4j graph database is supported at this time for Storage (Episodic Memory) and  POSTGRESS for Profile Memory. </Note>
+用于配置记忆存储所使用的数据库。
 
-| Parameter                         | Required? | Default       | Description                                                  |
-| --------------------------------- | --------- | ------------- | ------------------------------------------------------------ |
-| `<ID>.vendor_name`                | Yes        | neo4j        | The name of the database vendor to use (e.g., `neo4j`).      |
-| `<ID>.host`                       | Yes        | localhost    | The hostname or IP address of the database server.           |
-| `<ID>.port`                       | Yes        | 7687         | The port number for the database connection.                 |
-| `<ID>.user`                       | Yes        | N/A          | The username for database authentication.                    |
-| `<ID>.password`                   | Yes        | N/A          | The password for database authentication.                    |
-| `profile_storage`                 | Yes        | N/A          | The configuration for the profile database using Postgres.   |  
-| `<ID>.vendor_name`                | Yes        | postgres     | The name of the database vendor to use for profile storage.  |
-| `<ID>.host`                       | Yes        | localhost    | The hostname or IP address of the profile database server.   |
-| `<ID>.port`                       | Yes        | 5432         | The port number for the profile database connection.         |
-| `<ID>.user`                       | Yes        | postgres     | The username for profile database authentication.            |
-| `<ID>.db_name`                    | Yes        | postgres     | The name of the profile database.                            |
-| `<ID>.password`                   | Yes        | N/A          | The password for profile database authentication.            |
+需分别为 `my_storage_id`（长期记忆）和 `profile_storage`（画像记忆）设置参数，以使用不同的数据库。
+<Note>目前 Episodic Memory 仅支持 Neo4j 图数据库，Profile Memory 使用 Postgres。</Note>
+
+| 参数                     | 必填？ | 默认值     | 说明                                                         |
+| ------------------------ | ------ | ---------- | ------------------------------------------------------------ |
+| `<ID>.vendor_name`       | 是     | `neo4j`    | 长期记忆所用数据库供应商名称。                               |
+| `<ID>.host`              | 是     | `localhost`| 数据库服务器主机或 IP。                                     |
+| `<ID>.port`              | 是     | `7687`     | 数据库连接端口。                                             |
+| `<ID>.user`              | 是     | N/A        | 数据库认证用户。                                             |
+| `<ID>.password`          | 是     | N/A        | 数据库认证密码。                                             |
+| `profile_storage`        | 是     | N/A        | 画像数据库配置（Postgres）。                                 |
+| `<ID>.vendor_name`       | 是     | `postgres` | 画像数据库供应商名称。                                       |
+| `<ID>.host`              | 是     | `localhost`| 画像数据库主机或 IP。                                        |
+| `<ID>.port`              | 是     | `5432`     | 画像数据库端口。                                             |
+| `<ID>.user`              | 是     | `postgres` | 画像数据库认证用户。                                         |
+| `<ID>.db_name`           | 是     | `postgres` | 画像数据库名称。                                             |
+| `<ID>.password`          | 是     | N/A        | 画像数据库认证密码。                                         |
 
 
 ```YAML
@@ -159,16 +160,16 @@ storage:
     password: <YOUR_PASSWORD_HERE>
 ```
 </Accordion>
-<Accordion title="Session Memory">
+<Accordion title="会话记忆 (Session Memory)">
 
-| Parameter                       | Required? | Default       | Description                                                  |
-| ------------------------------- | --------- | ------------- | ------------------------------------------------------------ |
-| `model_name`                    | No        | N/A           | The ID of the model to use for session memory.               |
-| `message_capacity`              | No        | 500           | The maximum number of messages to store in session memory.   |
-| `max_message_length`            | No        | 16000         | The maximum length of a message in session memory.           |
-| `max_token_num`                 | No        | 8000          | The maximum number of tokens to store in session memory.     |
+| 参数                | 必填？ | 默认值 | 说明                                                      |
+| ------------------- | ------ | ------ | --------------------------------------------------------- |
+| `model_name`        | 否     | N/A    | 会话记忆使用的模型 ID。                                    |
+| `message_capacity`  | 否     | 500    | 会话记忆可保存的最大消息数。                               |
+| `max_message_length`| 否     | 16000  | 单条消息的最大长度。                                       |
+| `max_token_num`     | 否     | 8000   | 会话记忆中可保存的最大 token 数。                          |
 
-An example of these parameters in a config file would look like the following:
+配置示例：
 ```YAML
 sessionMemory:
   model_name: testmodel
@@ -178,26 +179,26 @@ sessionMemory:
 ```
 </Accordion>
 
-<Accordion title="Embedder">
+<Accordion title="嵌入模型 (Embedder)">
 
-The Embedder model that we choose to use.
-<Note> `aws_embedder_id` parameters are only required for AWS Bedrock embedding models. The default, `my_embedder_id`, is set up for OpenAI embedding models. </Note>
+配置可选的向量嵌入模型。
+<Note>`aws_embedder_id` 参数仅在使用 AWS Bedrock 嵌入模型时需要。默认的 `my_embedder_id` 已为 OpenAI 嵌入模型预设。</Note>
 
-| Parameter                            | Required? | Default       | Description                                                  |
-| ------------------------------------ | --------- | ------------- | ------------------------------------------------------------ |
-| `my_ebedder_id`                      | No        | N/A           | Tag for your default embedder.  Use if using OpenAI.         |
-| `<ID>.name`                          | No        | openai        | The vendor name of your embedder.                            |
-| `<ID>.model_name`                    | No        | "text-embedding-3-small" | The model type of your embedder.  Should be by the vendor designated in `name`. |
-| `<ID>.api_key`                       | No        | N/A           | Your API Key for use with OpenAI                             |
-| `aws_embedder_id`                    | No        | N/A           | Tag should you choose to use AWS Bedrock for your Embedder.  |
-| `<ID>.name`                          | No        | 'amazon-bedrock' | The vendor name of your embedder.                         |
-| `<ID>.region`                        | No        | N/A           | The AWS region for the Bedrock embedder (e.g., `us-west-2`). |
-| `<ID>.aws_access_key_id`             | No        | N/A           | The AWS access key ID for Bedrock authentication.            |
-| `<ID>.aws_secret_access_key`         | No        | N/A           | The AWS secret access key for Bedrock authentication.        |
-| `<ID>.model_id`                      | No        | N/A           | The Bedrock model ID to use for embeddings.                  |
-| `<ID>.similarity_metric`             | No        | "cosine"      | | The similarity metric to use for embedding comparisons (e.g., `cosine`, `euclidean`). |
+| 参数                  | 必填？ | 默认值                 | 说明                                                         |
+| --------------------- | ------ | ---------------------- | ------------------------------------------------------------ |
+| `my_embedder_id`      | 否     | N/A                    | 默认嵌入模型标签，适用于 OpenAI。                             |
+| `<ID>.name`           | 否     | `openai`               | 嵌入模型供应商名称。                                        |
+| `<ID>.model_name`     | 否     | `"text-embedding-3-small"` | 供应商提供的嵌入模型名称。                           |
+| `<ID>.api_key`        | 否     | N/A                    | 使用 OpenAI 时的 API Key。                                   |
+| `aws_embedder_id`     | 否     | N/A                    | 使用 AWS Bedrock 时的嵌入模型标签。                         |
+| `<ID>.name`           | 否     | `amazon-bedrock`       | Bedrock 嵌入模型供应商名称。                                 |
+| `<ID>.region`         | 否     | N/A                    | Bedrock 嵌入模型所在的 AWS 区域（如 `us-west-2`）。          |
+| `<ID>.aws_access_key_id` | 否  | N/A                    | Bedrock 认证所需的访问密钥 ID。                             |
+| `<ID>.aws_secret_access_key`|否| N/A                    | Bedrock 认证所需的密钥。                                     |
+| `<ID>.model_id`       | 否     | N/A                    | Bedrock 嵌入模型 ID。                                        |
+| `<ID>.similarity_metric`| 否   | `"cosine"`           | 向量相似度度量方式（如 `cosine`、`euclidean`）。             |
 
-An example of these parameters in a config file would look like the following:
+配置示例：
 ```YAML
 embedder:
   my_embedder_id:
@@ -215,26 +216,27 @@ embedder:
       similarity_metric: "cosine"
 ```
 </Accordion>
-<Accordion title="Reranker">
-Parameters to set for the chosen Reranker.
-<Note> `aws_reranker_id` parameters are only required for AWS Bedrock reranking models. If you choose to use AWS Bedrock for your reranker, be sure to list it under your `reranker_ids` and define it appropriately.</Note>
+<Accordion title="重排器 (Reranker)">
 
-<Info> The `ce_ranker_id` is for use only on systems that have GPUs</Info>
+设置重排器相关参数。
+<Note>`aws_reranker_id` 仅在使用 AWS Bedrock 重排模型时需要。若使用 Bedrock，请在 `reranker_ids` 中列出并配置对应参数。</Note>
 
-| Parameter                            | Required? | Default       | Description                                                  |
-| ------------------------------------ | --------- | ------------- | ------------------------------------------------------------ |
-| `my_reranker_id`                     | Yes       | N/A           | This tag defines the rerankers you wish to use.              |
-| `<ID>.type`                          | Yes       | N/A           | The type of reranker to use (e.g., `rrf-hybrid`, `identity`, `bm25`, `cross-encoder`, `amazon-bedrock`). |
-| `<ID>.reranker_ids`                  | Yes       | N/A           | A list of reranker IDs to be used in the hybrid reranker.    |
-| `id_ranker_id`                       | No        | N/A           | An identity reranker configuration.                             |
-| `bm_ranker_id`                       | No        | N/A           | A BM25 reranker configuration.                                 |
-| `ce_ranker_id`                       | No        | "cross-encoder" | A cross-encoder reranker configuration.                        |
-| `<ID>.model_name`                    | No        | N/A           | The model name for the cross-encoder reranker.               |
-| `aws_reranker_id`                    | No        | N/A           | Tag should you choose to use AWS Bedrock for your Reranker.  |
-| `<ID>.region`                        | No        | N/A           | The AWS region for the Bedrock reranker (e.g., `us-west-2`). |
-| `<ID>.aws_access_key_id`             | No        | N/A           | The AWS access key ID for Bedrock authentication.            |
-| `<ID>.aws_secret_access_key`         | No        | N/A           | The AWS secret access key for Bedrock authentication.        |
-| `<ID>.model_id`                      | No        | N/A           | The Bedrock model ID to use for reranking.                  |
+<Info>`ce_ranker_id` 仅适用于具备 GPU 的系统。</Info>
+
+| 参数              | 必填？ | 默认值           | 说明                                                         |
+| ----------------- | ------ | ---------------- | ------------------------------------------------------------ |
+| `my_reranker_id`  | 是     | N/A              | 定义需要使用的重排器集合。                                   |
+| `<ID>.type`       | 是     | N/A              | 重排器类型（如 `rrf-hybrid`、`identity`、`bm25`、`cross-encoder`、`amazon-bedrock`）。 |
+| `<ID>.reranker_ids`| 是    | N/A              | 混合重排器所包含的重排器 ID 列表。                           |
+| `id_ranker_id`    | 否     | N/A              | Identity 重排器配置。                                        |
+| `bm_ranker_id`    | 否     | N/A              | BM25 重排器配置。                                            |
+| `ce_ranker_id`    | 否     | `"cross-encoder"`| Cross-Encoder 重排器配置。                                   |
+| `<ID>.model_name` | 否     | N/A              | Cross-Encoder 重排器所用模型名称。                           |
+| `aws_reranker_id` | 否     | N/A              | 使用 AWS Bedrock 重排器时的标签。                            |
+| `<ID>.region`     | 否     | N/A              | Bedrock 重排器的 AWS 区域。                                  |
+| `<ID>.aws_access_key_id` | 否 | N/A           | Bedrock 认证所需访问密钥 ID。                                |
+| `<ID>.aws_secret_access_key`| 否| N/A         | Bedrock 认证所需密钥。                                       |
+| `<ID>.model_id`   | 否     | N/A              | Bedrock 重排模型 ID。                                        |
 
 An example of these parameters in a config file would look like the following:
 ```YAML

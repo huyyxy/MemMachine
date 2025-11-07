@@ -1,9 +1,9 @@
 ---
-title: "Core Data structures" 
-description: "This document outlines the core data structures used for managing memory, including sessions, contexts, and individual events (episodes)." 
+title: "核心数据结构" 
+description: "本文介绍管理记忆所需的核心数据结构，包括会话、上下文以及单条事件（Episode）。" 
 icon: "cube"
 ---
-These data types are the atomic building blocks of the MemMachine SDK. They define how individual events (`Episode`) are recorded and how memory instances are securely isolated for different conversations (`MemoryContext`).
+这些数据类型是 MemMachine SDK 的原子级积木，用于描述单条事件（`Episode`）如何被记录，也用于定义不同会话的记忆实例如何通过 `MemoryContext` 进行隔离。
 
 <a id="memmachine.core_types.ContentType"></a>
 
@@ -13,13 +13,13 @@ These data types are the atomic building blocks of the MemMachine SDK. They defi
 class ContentType(Enum)
 ```
 
-This enumeration specifies the format of the data stored within an **`Episode`'s `content` field**.
+该枚举用于说明 **`Episode` 的 `content` 字段** 中存放的数据格式。
 
-| Member   | Value      | Description                            |
-| -------- | ---------- | -------------------------------------- |
-| `STRING` | `"string"` | The content is a standard text string. |
+| 成员       | 值         | 说明                             |
+| ---------- | ---------- | -------------------------------- |
+| `STRING`   | `"string"` | 内容为标准文本字符串。           |
 
-<Note> This design allows for future expansion to support other data formats like vector embeddings or image metadata without changing the core episode structure.</Note>
+<Note>该设计便于未来扩展，例如支持向量嵌入或图像元数据，而无需修改 Episode 的核心结构。</Note>
 
 <a id="memmachine.core_types.Episode"></a>
 
@@ -30,22 +30,22 @@ This enumeration specifies the format of the data stored within an **`Episode`'s
 class Episode
 ```
 
-An **`Episode`** represents a single, atomic event or piece of data in the memory system (e.g., a user message, an agent's internal thought).
+**`Episode`** 表示记忆系统中的一条原子事件或数据，例如用户消息、智能体的内部想法等。
 
-The use of `@dataclass(kw_only=True)` means **all fields must be specified using keyword arguments** when you create an `Episode` instance.
+使用 `@dataclass(kw_only=True)` 表示在创建 `Episode` 实例时，**所有字段都必须通过关键字参数指定**。
 
-| Field                 | Type               | Description                                                  |
-| --------------------- | ------------------ | ------------------------------------------------------------ |
-| **`uuid`**            | `UUID`             | A unique identifier for this specific episode.               |
-| **`episode_type`**    | `str`              | The category of event (e.g., `'message'`, `'thought'`, `'action'`). |
-| **`content_type`**    | `ContentType`      | The type of the data stored in the `content` field.          |
-| **`content`**         | `Any`              | The actual data of the episode.                              |
-| **`timestamp`**       | `datetime`         | The date and time when the episode occurred.                 |
-| **`group_id`**        | `str`              | Identifier for the larger conversation **group**.            |
-| **`session_id`**      | `str`              | Identifier for the specific **session** this episode belongs to. |
-| **`producer_id`**     | `str`              | The ID of the user or agent that created this episode.       |
-| **`produced_for_id`** | `str | None`       | The ID of the intended recipient, if any.                    |
-| **`user_metadata`**   | `JSONValue | None` | A dictionary for any additional, custom metadata in a JSON-compatible format. |
+| 字段                   | 类型               | 说明                                                         |
+| ---------------------- | ------------------ | ------------------------------------------------------------ |
+| **`uuid`**             | `UUID`             | 该 Episode 的唯一标识。                                      |
+| **`episode_type`**     | `str`              | 事件类型（如 `'message'`、`'thought'`、`'action'`）。         |
+| **`content_type`**     | `ContentType`      | `content` 字段的数据类型。                                   |
+| **`content`**          | `Any`              | 实际的事件内容。                                             |
+| **`timestamp`**        | `datetime`         | 事件发生的日期与时间。                                       |
+| **`group_id`**         | `str`              | 对话所属的 **群组** 标识。                                    |
+| **`session_id`**       | `str`              | 该 Episode 所归属的 **会话** 标识。                           |
+| **`producer_id`**      | `str`              | 创建该 Episode 的用户或智能体 ID。                           |
+| **`produced_for_id`**  | `str | None`       | 若存在，表示目标接收方的 ID。                                 |
+| **`user_metadata`**    | `JSONValue | None` | JSON 兼容的自定义附加信息字典。                              |
 
 <a id="memmachine.core_types.MemoryContext"></a>
 
@@ -56,18 +56,18 @@ The use of `@dataclass(kw_only=True)` means **all fields must be specified using
 class MemoryContext
 ```
 
-The **`MemoryContext`** is used by the `EpisodicMemoryManager` to define the unique identifier for a memory instance. It ensures that memory access is isolated to the correct conversation.
+`EpisodicMemoryManager` 使用 **`MemoryContext`** 来定义记忆实例的唯一标识，确保记忆访问被隔离到正确的会话。
 
-| Field            | Type       | Description                                 |
-| ---------------- | ---------- | ------------------------------------------- |
-| **`group_id`**   | `str`      | The identifier for the group context.       |
-| **`agent_id`**   | `set[str]` | A set of agent identifiers for the context. |
-| **`user_id`**    | `set[str]` | A set of user identifiers for the context.  |
-| **`session_id`** | `str`      | The identifier for the session context.     |
+| 字段              | 类型       | 说明                                      |
+| ----------------- | ---------- | ----------------------------------------- |
+| **`group_id`**    | `str`      | 群组上下文的标识。                        |
+| **`agent_id`**    | `set[str]` | 该上下文中参与的智能体 ID 集合。          |
+| **`user_id`**     | `set[str]` | 该上下文中参与的用户 ID 集合。            |
+| **`session_id`**  | `str`      | 会话上下文的标识。                        |
 
 
-### Special Behavior for Isolation
-<Callout icon="key" color="#FFC107" iconType="regular">The `MemoryContext` implements custom equality (`__eq__`) and hashing (`__hash__`) methods. **A memory context is considered equal to another *if and only if* their `group_id` and `session_id` match.** This ensures that the manager correctly uses these two fields as the primary lookup key for active memory instances, regardless of how the agent and user sets are structured.</Callout>
+### 隔离的特殊行为
+<Callout icon="key" color="#FFC107" iconType="regular">`MemoryContext` 定义了自定义的相等比较（`__eq__`）与哈希（`__hash__`）方法。**仅当两个上下文的 `group_id` 与 `session_id` 相同，它们才被视为相等。** 因此管理器始终以这两个字段作为活跃记忆实例的主键，不受智能体与用户集合差异的影响。</Callout>
 
 
 <a id="memmachine.core_types.SessionInfo"></a>
@@ -79,15 +79,15 @@ The **`MemoryContext`** is used by the `EpisodicMemoryManager` to define the uni
 class SessionInfo
 ```
 
-The **`SessionInfo`** holds all the persistent metadata about a single conversation session. This is retrieved from the `SessionManager` when an existing memory instance is opened.
+**`SessionInfo`** 保存单个会话的持久化元数据。在打开已存在的记忆实例时，这些信息会通过 `SessionManager` 取回。
 
-| Field               | Type        | Description                                                  |
-| ------------------- | ----------- | ------------------------------------------------------------ |
-| **`group_id`**      | `str`       | The identifier for the group conversation.                   |
-| **`session_id`**    | `str`       | The unique string identifier for the session.                |
-| **`agent_ids`**     | `list[str]` | A list of agent IDs participating in the session.            |
-| **`user_ids`**      | `list[str]` | A list of user IDs participating in the session.             |
-| **`configuration`** | `dict`      | A dictionary containing any custom configuration for this session. |
+| 字段                | 类型        | 说明                                                        |
+| -------------------- | ----------- | ----------------------------------------------------------- |
+| **`group_id`**       | `str`       | 对话群组标识。                                              |
+| **`session_id`**     | `str`       | 会话的唯一字符串标识。                                      |
+| **`agent_ids`**      | `list[str]` | 参与该会话的智能体 ID 列表。                                |
+| **`user_ids`**       | `list[str]` | 参与该会话的用户 ID 列表。                                  |
+| **`configuration`**  | `dict`      | 针对该会话的自定义配置字典。                                |
 
 <a id="memmachine.core_types.GroupConfiguration"></a>
 
@@ -98,11 +98,11 @@ The **`SessionInfo`** holds all the persistent metadata about a single conversat
 class GroupConfiguration
 ```
 
-The **`GroupConfiguration`** holds persistent metadata about a multi-session conversation group.
+**`GroupConfiguration`** 用于保存多会话对话群组的持久化元数据。
 
-| Field               | Type        | Description                                                  |
-| ------------------- | ----------- | ------------------------------------------------------------ |
-| **`group_id`**      | `str`       | The unique identifier for the group.                         |
-| **`agent_list`**    | `list[str]` | A list of agent IDs that belong to the group.                |
-| **`user_list`**     | `list[str]` | A list of user IDs that belong to the group.                 |
-| **`configuration`** | `dict`      | A dictionary containing any custom configuration for the group. |
+| 字段                | 类型        | 说明                                                         |
+| -------------------- | ----------- | ------------------------------------------------------------ |
+| **`group_id`**       | `str`       | 群组的唯一标识。                                             |
+| **`agent_list`**     | `list[str]` | 属于该群组的智能体 ID 列表。                                 |
+| **`user_list`**      | `list[str]` | 属于该群组的用户 ID 列表。                                   |
+| **`configuration`**  | `dict`      | 群组的自定义配置字典。                                       |

@@ -1,31 +1,31 @@
 ---
-title: "Quickstart Guide"
-description: "Start using MemMachine's personalized memory in minutes"
+title: "快速入门指南"
+description: "几分钟内启用 MemMachine 的个性化记忆"
 icon: "circle-play"
 ---
 
-## Installation
+## 安装
 
-Our fastest method to get started with MemMachine is by using Docker and Docker Compose. This approach bundles all necessary components into containers, simplifying the setup process.
+最快体验 MemMachine 的方式是使用 Docker 与 Docker Compose。此方案将所有必需组件打包进容器之中，大幅简化部署流程。
 
-### Prerequisites
+### 前置条件
 
-Before installing MemMachine, ensure you have the following prerequisites:
+在安装 MemMachine 之前，请确认已经准备好以下环境：
 
-- **Python 3.12+** - MemMachine requires Python 3.12 or higher
-- **OpenAI API Key** - For language models and embeddings
-<Note> MemMachine itself is free to install, but please note that tokens are consumed when you use the software. </Note>
+- **Python 3.12+**：MemMachine 需要 Python 3.12 或更高版本
+- **OpenAI API Key**：用于大语言模型与向量嵌入
+<Note>MemMachine 本身可免费安装，但在使用软件时会消耗对应模型的 tokens。</Note>
 
-### Download and Start Using MemMachine
-This method is recommended for most users.
+### 下载并启动 MemMachine
+此方法适用于绝大多数用户。
 <Steps>
-  <Step title="Have Docker and Docker Compose Installed">
-      Make sure that you have [Docker](https://docs.docker.com/engine/install/) and [Docker Compose](https://docs.docker.com/compose/install/) installed on your machine.
+  <Step title="安装 Docker 与 Docker Compose">
+      请确保你的机器已安装 [Docker](https://docs.docker.com/engine/install/) 与 [Docker Compose](https://docs.docker.com/compose/install/)。
   </Step>
-  <Step title="Download MemMachine and Run the Script">
+  <Step title="下载 MemMachine 并运行脚本">
       <Tabs>
         <Tab title="Windows" icon="windows">
-          If you're using Windows, you can use Powershell.  If you are using WSL, see the Linux tab.
+          如果你使用的是 Windows，可直接在 PowerShell 中运行以下命令；若在 WSL 环境，请参考 Linux 选项卡。
           ```powershell
           # One-block install for Windows PowerShell
           $latestRelease = Invoke-RestMethod -Uri "https://api.github.com/repos/MemMachine/MemMachine/releases/latest"; `
@@ -40,7 +40,7 @@ This method is recommended for most users.
           ```
         </Tab>
         <Tab title="MacOS" icon="apple">
-          If you're using MacOS, you can use the built-in Terminal application to run the following commands.
+          如果你使用的是 macOS，可在终端（Terminal）中执行以下命令。
           ```bash
           # Download the latest release tarball
           curl -s https://api.github.com/repos/MemMachine/MemMachine/releases/latest \
@@ -59,7 +59,7 @@ This method is recommended for most users.
           ```
         </Tab>
         <Tab title="Linux" icon="linux">
-          If you're using Linux, you can use the built-in Terminal application to run the following commands.
+          如果你使用的是 Linux，可在终端中运行如下命令。
           ```bash
           # Download the latest release tarball
           curl -s https://api.github.com/repos/MemMachine/MemMachine/releases/latest \
@@ -80,10 +80,10 @@ This method is recommended for most users.
         </Tab>
       </Tabs>
 
-      That's it!  The script will walk you through all of the remaining steps and check the health of your memmachine installation and configuration.        
+      就这样！脚本会带你完成剩余流程，并自动检测 MemMachine 的安装与配置是否正常。        
   </Step>
-  <Step title="The MemMachine-compose.sh Script">
-    The `MemMachine-compose.sh` script does more than simply install memmachine, although that is it's default behavior.  As the commands associated with this script (shown below) describe, it can be used for stopping, restarting, viewing logs, and cleaning up your memmachine installation.
+  <Step title="了解 memmachine-compose.sh 脚本">
+    `memmachine-compose.sh` 不仅能安装 MemMachine（这也是它的默认行为），还支持停止、重启、查看日志以及清理环境等多种操作，如下所示：
     ```sh
       ./memmachine-compose.sh --help
         MemMachine Docker Startup Script
@@ -102,34 +102,34 @@ This method is recommended for most users.
   </Step>
 </Steps>
 
-### Hello World Examples
-Validate that your installation is working by following one of the examples below. Each example demonstrates how to add, search, and delete memory episodes using different interfaces: RESTful API, MCP Server, and Python SDK.
+### Hello World 示例
+通过以下示例确认安装是否成功。每个示例都会展示如何在不同接口（RESTful API、MCP Server 与 Python SDK）中添加、搜索、删除记忆片段。
 
 <Tabs>
   <Tab title="RESTful API" icon="server">
-    ### Hello World: A Guide to the MemMachine RESTful API
+    ### Hello World：MemMachine RESTful API 指南
 
-This guide provides a quick and simple way to get started with the MemMachine RESTful API using `curl` commands.
+本指南将通过 `curl` 命令，带你快速上手 MemMachine 的 RESTful API。
 
-### Prerequisites
+### 前置条件
 
-First, make sure your FastAPI application is running. Open your terminal, navigate to the directory containing your `app.py` file, and run the following command. The output should confirm that the server is listening for requests.
+首先，请确保 FastAPI 应用已经启动。在终端中定位到包含 `app.py` 的目录，执行以下命令，看到服务监听输出后即可继续。
 
 ```
 uvicorn app:app --reload
 ```
 <Steps>
-<Step title="Get All Sessions">
+<Step title="获取所有会话">
 
-The simplest way to start is by checking for existing sessions. This `GET` request doesn't require any data. You will likely see an empty list since no sessions have been created yet.
+最简单的检查方式是直接列出当前会话。此 `GET` 请求无需携带数据，因为尚未创建会话，所以通常会返回空列表。
 
 ```
 curl http://127.0.0.1:8080/v1/sessions
 ```
 </Step>
-<Step title="Add a New Memory">
+<Step title="新增记忆片段">
 
-This is where you'll create your first memory episode. The `POST /v1/memories` endpoint requires a JSON body that includes session details, a producer, a recipient, and the content of the memory itself.
+接下来，创建你的第一个记忆片段。`POST /v1/memories` 端点需要一个 JSON 请求体，包含会话信息、生产者、接收者以及记忆内容。
 
 **Command:**
 
@@ -151,13 +151,13 @@ curl -X POST "http://127.0.0.1:8080/v1/memories" \
 }'
 ```
 
-**Expected Output:**
+**预期结果：**
 
-You will receive an empty `200 OK` response, confirming the memory was added successfully.
+你会收到空的 `200 OK` 响应，表示记忆已成功写入。
 </Step>
-<Step title="Search for the Memory">
+<Step title="检索记忆片段">
 
-Now that a memory has been added, let's try to find it. The `POST /v1/memories/search` endpoint also requires a JSON body to specify the search query and session.
+在成功写入之后，我们尝试搜索它。`POST /v1/memories/search` 端点同样需要 JSON 请求体，用于携带查询条件与会话信息。
 
 **Command:**
 
@@ -177,13 +177,13 @@ curl -X POST "http://127.0.0.1:8080/v1/memories/search" \
 }'
 ```
 
-**Expected Output:**
+**预期结果：**
 
-You should see a `200 OK` response containing the search results, including the memory episode you just added. The output will be formatted as a JSON object, confirming that your memory was successfully found.
+你将获得 `200 OK` 响应，JSON 结果中会包含刚刚创建的记忆片段，确认检索成功。
 </Step>
-<Step title=" Delete the Session Data">
+<Step title="删除会话数据">
 
-To clean up after your test, you can use the `DELETE /v1/memories` endpoint. This also requires a JSON body to specify which session's data should be removed.
+测试完成后，可通过 `DELETE /v1/memories` 清理对应会话的数据，同样需要在请求体中指定目标会话。
 
 **Command:**
 
@@ -203,21 +203,21 @@ curl -X DELETE "http://127.0.0.1:8080/v1/memories" \
 </Steps>
   </Tab>
   <Tab title="MCP Server" icon="terminal">
-    ### Hello World: A Guide to the MemMachine MCP Server API
+    ### Hello World：MemMachine MCP Server API 指南
 
-This guide provides a quick and simple way to get started with the MemMachine Model Content Protocol (MCP) Server API using `curl` commands.
+本指南同样使用 `curl` 命令，帮助你快速体验 MemMachine 的 Model Content Protocol (MCP) Server API。
 
-### Prerequisites
+### 前置条件
 
-First, ensure your FastAPI application is running. Open your terminal, navigate to the directory containing your `app.py` file, and run the following command. The output should confirm that the server is listening for requests.
+首先确保 FastAPI 应用正在运行。在终端中进入 `app.py` 所在目录，执行以下命令，确认服务已启动。
 
 ```
 uvicorn app:app --reload
 ```
 <Steps>
-<Step title="Get All Sessions">
+<Step title="获取所有会话">
 
-The simplest way to start is by checking for existing sessions. This is an MCP **resource**, which returns a list of all available sessions.
+最简单的起点依旧是查看当前会话。这是一个 MCP **resource**，会返回所有可用会话的列表。
 
 **Command:**
 
@@ -225,13 +225,13 @@ The simplest way to start is by checking for existing sessions. This is an MCP *
 curl http://127.0.0.1:8080/v1/mcp/sessions
 ```
 
-**Expected Output:**
+**预期结果：**
 
-You will likely see an empty list since no sessions have been created yet.
+若尚未创建会话，通常会看到空列表。
 </Step>
-<Step title="Add a New Memory">
+<Step title="新增记忆片段">
 
-This is where you'll use an MCP **tool** to create your first memory episode. The `/v1/mcp/add_session_memory` tool is invoked with a `POST` request to its dedicated endpoint.
+这里我们会使用 MCP 的 **tool** 来创建第一个记忆片段。`/v1/mcp/add_session_memory` 通过 `POST` 请求调用。
 
 **Command:**
 
@@ -258,9 +258,9 @@ curl --request POST \
 }'
 ```
 
-**Expected Output:**
+**预期结果：**
 
-You will receive a JSON response confirming the status. A status of `0` indicates success.
+你将收到一个 JSON 响应，其中 `status` 为 `0` 表示成功。
 
 ```
 {
@@ -269,9 +269,9 @@ You will receive a JSON response confirming the status. A status of `0` indicate
 }
 ```
 </Step>
-<Step title="Search for the Memory">
+<Step title="检索记忆片段">
 
-Now that a memory has been added, let's use another MCP **tool** to find it. The `/v1/mcp/search_session_memory` tool is designed for this purpose.
+写入记忆后，我们使用 `/v1/mcp/search_session_memory` **tool** 进行检索。
 
 **Command:**
 
@@ -296,13 +296,13 @@ curl --request POST \
 }'
 ```
 
-**Expected Output:**
+**预期结果：**
 
-You should see a `200 OK` response containing the search results, including the memory episode you just added.
+你将看到 `200 OK` 响应以及包含刚才创建的记忆片段的查询结果。
 </Step>
-<Step title="Delete the Session Data">
+<Step title="删除会话数据">
 
-To clean up after your test, use the `/v1/mcp/delete_session_data` **tool**. This is a great way to ensure your database remains clean.
+测试结束后，可通过 `/v1/mcp/delete_session_data` **tool** 清理会话数据，让数据库保持整洁。
 
 **Command:**
 
@@ -324,9 +324,9 @@ curl --request POST \
 }'
 ```
 
-**Expected Output:**
+**预期结果：**
 
-You will receive a JSON response confirming the status of the deletion. A status of `0` indicates that the data was deleted successfully.
+返回的 JSON 会告知删除状态，`status` 为 `0` 表示数据已成功删除。
 
 ```
 {
@@ -338,9 +338,9 @@ You will receive a JSON response confirming the status of the deletion. A status
 </Steps>
   </Tab>
   <Tab title="PythonSDK" icon="python">
-    Below is a short python script that demonstrates how to use both Episodic Memory and Profile Memory from the MemMachine Python SDK.
+    下方提供一段简短的 Python 脚本，演示如何通过 MemMachine Python SDK 同时使用情景记忆与画像记忆。
 
-    <Note>If you used a method other than Docker Compose, be sure to have your `cfg.yml` configuration file set up as described in the [Install Guide](./install_guide.mdx).</Note>
+    <Note>如果你采用 Docker Compose 之外的部署方式，请按照 [安装指南](./install_guide.mdx) 配置 `cfg.yml` 文件。</Note>
     
   ```python HelloWorld.py expandable
     from dotenv import load_dotenv
@@ -431,30 +431,26 @@ You will receive a JSON response confirming the status of the deletion. A status
 
     ```
 
-    Once the file is in your directory, execute it to see the text output it generates:
+    将脚本保存至当前目录后，执行以下命令查看输出：
     ```bash
     python3 ./HelloWorld.py
     ```
   </Tab>
 </Tabs>
 
-### Troubleshooting
+### 故障排查
 
-#### Common Issues
+#### 常见问题
 
-1. **Configuration File Names**: In some earlier versions of MemMachine, the configuration file within Docker Compose was named `configuration.yml`.  This name still works. However, the preferred name is now `cfg.yml`. 
+1. **配置文件命名**：早期版本的 Docker Compose 配置文件名为 `configuration.yml`，目前仍然兼容，但推荐使用 `cfg.yml`。
+2. **Neo4j 连接错误**：请确保 `cfg.yml` 中的 Neo4j 主机配置为 `memmachine-neo4j-custom`（而非 `localhost`）。
+3. **OpenAI API Key 错误**：确认 `cfg.yml` 中配置了有效的 OpenAI API Key。
+4. **端口访问问题**：若无法访问 API，请确认 MemMachine 容器运行在 `memmachine-network` 网络上，并且 8080 端口可用。
+5. **容器网络问题**：确保所有相关容器均在同一 Docker 网络（`memmachine-network`）中。
 
-2. **Neo4j Connection Error**: Ensure the Neo4j host in `cfg.yml` is set to `memmachine-neo4j-custom` (not `localhost`)
+#### 常用命令
 
-3. **OpenAI API Key Error**: Make sure you have a valid OpenAI API key and it's correctly set in the `cfg.yml` file.
-
-4. **Port Access Issues**: If you can't access the API, ensure the MemMachine container is running on the `memmachine-network` and port 8080 is accessible
-
-5. **Container Network Issues**: Make sure both containers are on the same Docker network (`memmachine-network`)
-
-#### Useful Commands
-
-- Check container status: `docker ps`
-- View container logs: `docker logs <container_id>`
-- Stop containers: `docker stop <container_id>`
-- Remove containers: `docker rm <container_id>`
+- 查看容器状态：`docker ps`
+- 查看容器日志：`docker logs <container_id>`
+- 停止容器：`docker stop <container_id>`
+- 删除容器：`docker rm <container_id>`

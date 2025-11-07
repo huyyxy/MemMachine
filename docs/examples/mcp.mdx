@@ -1,41 +1,41 @@
 ---
 title: "MCP"
-description: "MCP API Examples for MemMachine"
+description: "MemMachine 的 MCP API 示例"
 icon: "server"
 ---
 
-# MCP API Examples
-## Hello World: A Guide to the MemMachine MCP Server API
+# MCP API 示例
+## Hello World：MemMachine MCP Server API 指南
 
-This guide provides a quick and simple way to get started with the MemMachine Model Content Protocol (MCP) Server API using `curl` commands. It can also be found in our [Quick Start Guide](https://memmachine.ai/docs/getting-started/quick-start-guide).
+本指南将通过 `curl` 命令快速带你了解 MemMachine 的 Model Content Protocol (MCP) Server API。同样内容可在我们的 [快速入门指南](https://memmachine.ai/docs/getting-started/quick-start-guide) 中找到。
 
-### Prerequisites
+### 前置条件
 
-First, ensure your FastAPI application is running. Open your terminal, navigate to the directory containing your `app.py` file, and run the following command. The output should confirm that the server is listening for requests.
+首先确保 FastAPI 应用已运行。在终端进入包含 `app.py` 的目录，执行以下命令并确认服务已开始监听请求。
 
 ```
 uvicorn app:app --reload
 ```
 <Steps>
-<Step title="Get All Sessions">
+<Step title="获取所有会话">
 
-The simplest way to start is by checking for existing sessions. This is an MCP **resource**, which returns a list of all available sessions.
+最简单的起点是查看当前会话。这是一个 MCP **resource**，会返回所有可用会话列表。
 
-**Command:**
+**命令：**
 
 ```
 curl http://127.0.0.1:8080/mcp/sessions
 ```
 
-**Expected Output:**
+**预期结果：**
 
-You will likely see an empty list since no sessions have been created yet.
+若尚未创建会话，通常会看到空列表。
 </Step>
-<Step title="Add a New Memory">
+<Step title="新增记忆片段">
 
-This is where you'll use an MCP **tool** to create your first memory episode. The `mcp_add_session_memory` tool is invoked with a `POST` request to its dedicated endpoint.
+这里我们使用 MCP **tool** 来创建第一条记忆片段。`mcp_add_session_memory` 通过 `POST` 请求调用。
 
-**Command:**
+**命令：**
 
 ```
 curl -X POST "http://127.0.0.1:8080/mcp/add_session_memory" \
@@ -55,9 +55,9 @@ curl -X POST "http://127.0.0.1:8080/mcp/add_session_memory" \
 }'
 ```
 
-**Expected Output:**
+**预期结果：**
 
-You will receive a JSON response confirming the status. A status of `0` indicates success.
+会返回一个 JSON 响应，`status` 为 `0` 表示成功。
 
 ```
 {
@@ -66,11 +66,11 @@ You will receive a JSON response confirming the status. A status of `0` indicate
 }
 ```
 </Step>
-<Step title="Search for the Memory">
+<Step title="检索记忆片段">
 
-Now that a memory has been added, let's use another MCP **tool** to find it. The `mcp_search_session_memory` tool is designed for this purpose.
+写入记忆后，使用 `mcp_search_session_memory` **tool** 来检索。
 
-**Command:**
+**命令：**
 
 ```
 curl -X POST "http://127.0.0.1:8080/mcp/search_session_memory" \
@@ -88,15 +88,15 @@ curl -X POST "http://127.0.0.1:8080/mcp/search_session_memory" \
 }'
 ```
 
-**Expected Output:**
+**预期结果：**
 
-You should see a `200 OK` response containing the search results, including the memory episode you just added.
+你将看到 `200 OK` 响应，包含刚写入的记忆片段。
 </Step>
-<Step title="Delete the Session Data">
+<Step title="删除会话数据">
 
-To clean up after your test, use the `mcp_delete_session_data` **tool**. This is a great way to ensure your database remains clean.
+测试结束后，可使用 `mcp_delete_session_data` **tool** 清理数据，帮助数据库保持整洁。
 
-**Command:**
+**命令：**
 
 ```
 curl -X POST "http://127.0.0.1:8080/mcp/delete_session_data" \
@@ -111,9 +111,9 @@ curl -X POST "http://127.0.0.1:8080/mcp/delete_session_data" \
 }'
 ```
 
-**Expected Output:**
+**预期结果：**
 
-You will receive a JSON response confirming the status of the deletion. A status of `0` indicates that the data was deleted successfully.
+返回的 JSON 会确认删除状态，`status` 为 `0` 表示数据已成功移除。
 
 ```
 {

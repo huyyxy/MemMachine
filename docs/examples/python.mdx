@@ -1,12 +1,12 @@
 ---
 title: "Python SDK"
-description: "Python SDK Examples for MemMachine"
+description: "MemMachine 的 Python SDK 示例"
 icon: "python"
 ---
 
-# Python SDK Examples
+# Python SDK 示例
 
-## Simple Hello World Example
+## 简单的 Hello World 示例
 ```python
 import memmachine
 from memmachine.episodic_memory.episodic_memory_manager import EpisodicMemoryManager
@@ -14,13 +14,13 @@ from memmachine.episodic_memory.data_types import MemoryContext, Episode, Conten
 from datetime import datetime
 import uuid
 
-# Path to your config file (update as needed)
+# 配置文件路径（根据需要修改）
 CONFIG_PATH = "config.yaml"
 
-# Initialize the EpisodicMemoryManager using the config file
+# 使用配置文件初始化 EpisodicMemoryManager
 manager = EpisodicMemoryManager.create_episodic_memory_manager(CONFIG_PATH)
 
-# Create a memory context for this example
+# 为本示例创建记忆上下文
 memory_context = MemoryContext(
     group_id="hello-group",
     agent_id={"hello-agent"},
@@ -29,13 +29,13 @@ memory_context = MemoryContext(
     hash_str="hello-group:hello-agent:hello-user:hello-session"
 )
 
-# Get or create an episodic memory for the context
+# 获取或创建对应上下文的情景记忆
 episodic_memory = manager._context_memory.get(memory_context.hash_str)
 if episodic_memory is None:
     episodic_memory = manager._create_memory_for_context(memory_context)
     manager._context_memory[memory_context.hash_str] = episodic_memory
 
-# Create a new episode (message)
+# 创建新的记忆片段（message）
 episode = Episode(
     uuid=uuid.uuid4(),
     episode_type="message",
@@ -47,11 +47,11 @@ episode = Episode(
     producer_id="hello-user"
 )
 
-# Add the episode to episodic memory
+# 将记忆片段写入情景记忆
 episodic_memory.add_episode(episode)
 
-# Search for the message
+# 检索这条信息
 results = episodic_memory.retrieve_context_for_query("Hello World")
 print("Search results:", results)
 ```
-This example demonstrates how to set up and use the MemMachine Python SDK to create and retrieve episodic memories. Make sure to adjust the `CONFIG_PATH` variable to point to your actual configuration file.
+此示例演示了如何配置并使用 MemMachine Python SDK 来创建与检索情景记忆。请将 `CONFIG_PATH` 修改为实际的配置文件路径。

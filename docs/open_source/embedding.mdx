@@ -1,25 +1,25 @@
 ---
-title: "Embedding Models"
-description: "Breaking Language into Computer-Understandable Chunks"
+title: "嵌入模型"
+description: "把语言拆分成机器可理解的向量"
 icon: "anchor"
 ---
 
-## What is an Embedder?
+## 什么是嵌入模型？
 
-**How it works**: When you feed a sentence or a memory chunk into an embedder, it outputs a sequence of numbers (e.g., [0.1, -0.5, 0.8, ..., 0.2]). This vector is a rich representation that a computer can easily process and compare.
+**工作原理：** 将一句话或一段记忆片段输入嵌入模型后，会得到一组数值（如 `[0.1, -0.5, 0.8, ..., 0.2]`）。这个向量包含丰富语义，方便计算机进行处理与比较。
 
-Embedders are crucial for the first pass of information retrieval, often in systems known as **dense retrievers** or **vector databases**.
- - **Indexing**: All your memory chunks (documents, past interactions, user preferences) are first passed through an embedder. Their resulting embeddings are stored in a vector database.
- - **Query Encoding**: When a user issues a query, that query is also passed through the same embedder to get its embedding.
- - **Semantic Search**: The system then performs a fast vector similarity search in the vector database. It finds the memory chunk embeddings that are numerically "closest" to the query embedding. This identifies a large pool of potentially relevant items quickly. This first pass is typically very efficient but might not be perfectly precise in ordering.
+嵌入模型是信息检索首轮筛选的核心，常用于 **密集检索器（dense retriever）** 或 **向量数据库** 系统：
+- **索引阶段：** 所有记忆片段（文档、历史对话、用户偏好等）先通过嵌入模型，生成的向量存入向量数据库。
+- **查询编码：** 用户发起查询时，同样通过嵌入模型生成查询向量。
+- **语义搜索：** 系统在向量数据库中执行快速相似度搜索，找到与查询向量距离最近的记忆片段，快速筛出高度相关的候选项。这一步效率极高，但初步排序可能尚不完美。
 
-## How MemMachine uses Embedder
+## MemMachine 如何使用嵌入模型
 
-MemMachine utilizes embedders early on in it's process to break apart human language responses into chunks, or derivatives, which can then be ranked, sorted, and organized into intelligent memory "banks".  
+MemMachine 在流程早期就会调用嵌入模型，将自然语言响应拆分成片段或派生信息，随后再进行排序、筛选与组织，形成智能的记忆“银行”。
 
-## Configuration Considerations
+## 配置提示
 
-MemMachine supports the following embedders:
+MemMachine 当前支持以下嵌入模型：
 X
 XX
 XXXX

@@ -1,55 +1,54 @@
----
-title: "Agentic Memory"
-description: "The Game Changer for AI Agents"
+title: "智能体记忆"
+description: "AI 智能体的关键变革者"
 icon: "brain-circuit"
 ---
 
 
-## Introduction: Why AI Needs to Remember
+## 引言：为什么 AI 需要记忆
 
-- **The Problem with "Forgetful" AI:** Many current AI systems, like basic chatbots, are "**stateless**"—they treat each interaction as new, forgetting previous conversations. This leads to repetitive questions and a lack of personalization.
-- **"In-Context" Learning Today (RAG):** Current "in-context" learning often involves Retrieval-Augmented Generation (RAG), where relevant information is added directly to the LLM's prompt window. While powerful for static knowledge, it struggles with continuity.
-- **Introducing Agentic Memory:** This is the AI's ability to **store, retain, and intelligently retrieve** information from past interactions and experiences. It allows AI to move from being reactive and **stateless** to being **stateful, adaptive, and truly intelligent**.
-- **The Goal:** To enable AI that remembers you, learns from your preferences, and grows with you over time, providing **longitudinal context tracking** across extended interactions and diverse enterprise data.
+- **“健忘”AI 的问题：** 许多当前的 AI 系统（例如基础聊天机器人）是“**无状态**”的——它们会把每次交互都当作全新事件，遗忘之前的对话。这会导致重复提问，缺乏个性化体验。
+- **当下的“上下文”学习（RAG）：** 当前常见的“上下文内”学习依赖检索增强生成（Retrieval-Augmented Generation，RAG），将相关信息直接拼入大语言模型的提示窗口。这对于静态知识很有效，但在保持连续性方面力不从心。
+- **引入智能体记忆：** 智能体记忆是让 AI **存储、保留并智能检索**过往交互与经验信息的能力，让 AI 从被动的、**无状态**的系统演进为**有状态、自适应、真正智能**的系统。
+- **目标：** 让 AI 记住你、理解你的偏好、伴随你成长，在跨越长时段交互与多样化企业数据中实现**纵向上下文跟踪**。
 
-## The Components of AI Memory
+## AI 记忆的组成
 
-- **Beyond Simple Data Storage:** Agentic memory isn't just a basic database; it's a dynamic system with specialized "memories," much like humans have.
-- **Working Memory (Short-Term):**
-  - Holds immediate context for the current conversation or task. It's temporary and focused on what's happening *right now*.
-- **Persistent Memory (Long-Term Modules):** These are where deeper, enduring knowledge resides, organized to handle various data features.
-  - **Episodic Memory:** Stores specific past events and conversations, acting as the AI's "personal diary" (e.g., remembering "you mentioned your project deadline was Friday").
-  - **Factual Memory:** Holds structured facts, user preferences, and settings (e.g., your preferred language, dietary restrictions).
-  - **Semantic Memory / Knowledge Graph:** This builds understanding by connecting relationships and insights across diverse information. It allows the AI to make deeper inferences from vast datasets.
-- **Profile Database:**
-  - A dedicated store for **profiles of users and other agents**. This creates a deep "portrait" or "persona" for each entity, capturing their characteristics, roles, and historical behaviors.
+- **超越简单数据存储：** 智能体记忆不仅仅是一个基础数据库，而是一个拥有专门“记忆”模块的动态系统，类似于人类的记忆体系。
+- **工作记忆（短期）：**
+  - 负责保持当前对话或任务的即时上下文，临时且聚焦于此刻正在发生的事情。
+- **持久记忆（长期模块）：** 用于承载更深层、更持久的知识，并根据不同数据特性进行组织。
+  - **情景记忆：** 记录具体的过去事件与对话，像 AI 的“个人日记”（例如记得“你提过项目截止日期是周五”）。
+  - **事实记忆：** 存放结构化事实、用户偏好和设定（例如你偏好的语言、饮食限制）。
+  - **语义记忆 / 知识图谱：** 通过连接多源信息中的关系与洞察来构建理解，使 AI 能够对庞大数据做更深入的推理。
+- **画像数据库：**
+  - 专门用于存储**用户与其他智能体的画像**，为每个实体构建深度“肖像”或“人格”，涵盖其特征、角色以及历史行为。
 
-## How AI Memory Works: The Dynamic Cycle (Agent Workflow)
+## AI 记忆如何运作：动态循环（智能体工作流）
 
-- **The Agent Workflow:** Agentic memory is deeply integrated into the AI's overall workflow, influencing perception, decision-making, and action.
-- **Data Ingestion Agent:**
-  - This specialized agent is responsible for **collecting all relevant data**. This includes interaction logs between agents, users, and models (like session histories), and rich enterprise data such as Slack messages, emails, and internal documents.
-  - It intelligently processes this raw data, feeding it into the **Persistent Memory** and simultaneously extracting information to build or update the **Profile Database**. This creates a comprehensive "deep fortress" of knowledge.
-- **Encoding (Capturing):**
-  - AI intelligently processes new interactions and ingested data, determining what information is **salient and worth remembering** for both persistent memory and profiles.
-- **Storage & Organization:**
-  - Memories are stored in various efficient ways, often combining different database types (like vector, key-value, and graph databases) to handle diverse information.
-  - Crucially, new memories are **linked** to existing ones, building a rich, interconnected knowledge base that supports **longitudinal context tracking**.
-- **Context Retrieval Agent:**
-  - When a query (from a user or another agent) arrives, this intelligent agent intercepts it.
-  - It performs a sophisticated multi-source retrieval process:
-    - A) Intelligently retrieves relevant **personas from the Profile Database**.
-    - B) Extracts the most relevant **context from Persistent Memory** related to the query.
-    - C) Retrieves pertinent data from the existing **RAG system** (for broader enterprise knowledge).
-  - It then strategically compiles all this retrieved data (A+B+C) into the **prompt context**, which is then sent to the foundational model. This allows the model to provide the most informed and personalized answer.
-- **Learning, Evolution, and "Forgetting" (Reinforcement Learning):**
-  - Agentic memory isn't static. It **continuously learns and refines itself** based on new experiences and feedback.
-  - Crucially, the **Context Retrieval Agent is often powered by a reinforcement learning (RL) based fine-tuning system**. This allows it to become more intelligent over time, continually optimizing its ability to perform personalized context retrieval from both persistent memory and the RAG system.
-  - Less relevant or outdated information can be **selectively deprioritized or "forgotten"** to keep the memory efficient and focused on what truly matters, preventing memory bloat and ensuring optimal performance.
+- **智能体工作流：** 智能体记忆深度嵌入 AI 的整体工作流，影响其感知、决策与行动。
+- **数据摄取智能体：**
+  - 专职负责**收集所有相关数据**，包括智能体、用户与模型之间的交互日志（如会话历史），以及企业中的丰富数据，如 Slack 消息、邮件和内部文档。
+  - 它会智能处理这些原始数据，将信息写入**持久记忆**，同时提取要点来构建或更新**画像数据库**，打造全面而坚固的知识“堡垒”。
+- **编码（捕获）：**
+  - AI 对新交互与摄取数据进行智能处理，判断哪些信息对持久记忆与画像值得记住。
+- **存储与组织：**
+  - 记忆以多种高效方式存储，常结合向量、键值、图等不同类型的数据库，以适配多样化信息。
+  - 至关重要的是，新记忆会与既有记忆**建立关联**，构建丰富互联的知识库，支撑**纵向上下文跟踪**。
+- **上下文检索智能体：**
+  - 当来自用户或其他智能体的查询到达时，该智能体会进行拦截。
+  - 它执行复杂的多源检索流程：
+    - A) 智能检索**画像数据库**中的相关人格画像。
+    - B) 从**持久记忆**中提取与查询最相关的上下文信息。
+    - C) 从既有的 **RAG 系统**获取相关的广义企业知识。
+  - 随后，它会策略性地把这些检索结果（A+B+C）整合进**提示上下文**，再交给底座模型，以生成最准确、最个性化的答案。
+- **学习、进化与“遗忘”（强化学习）：**
+  - 智能体记忆并非静态；它会根据新经验与反馈**持续学习与自我优化**。
+  - 关键在于，**上下文检索智能体通常由基于强化学习（RL）的微调系统驱动**，使其随时间愈发聪明，持续优化从持久记忆与 RAG 系统进行个性化上下文检索的能力。
+  - 对于不再相关或过时的信息，可以**有选择地降权或“遗忘”**，保持记忆高效并聚焦于真正重要的内容，防止记忆臃肿，确保最佳性能。
 
-## The Impact: Smarter, More Personal AI
+## 影响：更聪明、更个性化的 AI
 
-- **Personalization:** AI can now genuinely understand and adapt to individual users and agents, leading to highly meaningful and effective interactions.
-- **Efficiency & Cost Savings:** By intelligently filtering and recalling only relevant information from multiple sources, agentic memory significantly reduces the amount of data (tokens) sent to large language models, leading to faster responses and lower operational costs.
-- **Enabling Complex Agents:** This sophisticated memory foundation, with its dedicated agents and multi-source retrieval, is critical for building agents that can handle multi-step tasks, maintain long conversations across sessions, and continuously improve their capabilities.
-- **The Future is Stateful and Context-Aware:** Agentic memory is a key step towards AI companions and assistants that truly know you, learn alongside you, and become increasingly valuable over time, driven by robust **longitudinal context tracking** and intelligent information management.
+- **个性化：** AI 能够真正理解并适配每位用户与智能体，实现更有意义、更高效的互动。
+- **效率与成本优化：** 通过从多源信息中智能筛选并调用最相关内容，智能体记忆大幅减少发送给大语言模型的数据量（tokens），提升响应速度并降低运营成本。
+- **支撑复杂智能体：** 拥有专职智能体和多源检索流程的先进记忆基础，是构建能够处理多步任务、跨会话维持长对话、持续增强能力的智能体的关键。
+- **未来必然有状态且具备上下文意识：** 智能体记忆是迈向真正了解你、与您共同学习、并随时间愈发有价值的 AI 伙伴与助手的重要一步，背靠强大的**纵向上下文跟踪**与智能信息管理。

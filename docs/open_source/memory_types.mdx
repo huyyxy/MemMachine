@@ -1,52 +1,52 @@
 ---
-title: "Memory Types"
-description: "How MemMachine organizes Memory"
+title: "记忆类型"
+description: "MemMachine 如何组织记忆"
 icon: "memory"
 ---
-## Memory Types
+## 记忆类型概览
 
-MemMachine works as an intelligent memory layer on top of a user's Agentic LLM experience.  It gathers input via Python APIs in a Memory Instance, then determines if that input is profile, short-term and/or long-term:  
- - **Profile memory** consists of information specific to the user and their experience.  
- - **Short-term memory** consists of episodic memory and summaries of the episodic memory.  A raw episode consists of 1 message. 
- - **Long-term memory** consists of a batch of episodes that is generated from the short-term memories.  The Episode batch is then ranked using a Reranker and deduplicated for the most frequent hits.  
+MemMachine 作为覆盖在 Agentic LLM 之上的智能记忆层，会通过 Python API 接收输入，并判断这些信息应归属于画像、短期或长期记忆：  
+- **画像记忆（Profile Memory）**：保存用户及其体验的特定信息。  
+- **短期记忆（Short-term Memory）**：由情景记忆（episodic memory）及其摘要构成，原始情景记忆一条消息即一个 Episode。  
+- **长期记忆（Long-term Memory）**：由短期记忆批量生成的 Episode 集合，经重排器排序并对高频结果去重。
 
-## How does MemMachine sort into it's Memory Types?
+## MemMachine 如何划分记忆类型？
 
-MemMachine utilizes an embedder to break apart user/agent language into distinct computer understandable derivatives.  These derivatives are then passed through a re-ranker which compares the results to those found in the long-term memory buckets, then returns the top, sorted matches.
+MemMachine 先通过嵌入模型将用户/智能体语言拆解为计算机可理解的派生信息，再通过重排器与长期记忆中的内容进行比对，返回排序后的候选结果。
 
-After the re-ranker completes it's activity, memory is stored into an associated database.  
-
-
-
-### Profile Memory
-
-Profile memory specifically focuses on information and data specific to a user and their experience.  The data is stored in a PostgreSQL database.
-
-**Memory Storage Process**
-     1. Raw user messages go into session_history
-     2. An LLM analyzes conversations to extract meaningful knowledge
-     3. Structured knowledge gets stored in memvergeprofile with vector embeddings
-     4. The citations table links each piece of knowledge back to its source conversations
-
-**Memory Retrieval Process**
-     1. **Query**: User asks a question or system needs context
-     2. **Semantic Search**: System uses vector embeddings to find relevant knowledge
-     3. **Retrieval**: Returns matching profile entries with their associated conversation sources
-     4. **Context**: Citations provide traceability back to original conversations
+重排流程结束后，相应记忆会写入对应的数据库。  
 
 
-#### Database Profile Memory Table Structures
 
-MemMachine is built on a **PostgreSQL database**, which uses the pgvector extension to perform an efficient vector similarity search. Think of this as a way to instantly find similar or related information. The system's memory is organized across **three main tables** that work together to store user profiles, conversation history, and the key relationships between them.
+### 画像记忆（Profile Memory）
+
+画像记忆聚焦于用户及其体验的特定信息，数据存储在 PostgreSQL 中。
+
+**存储流程**
+1. 原始用户消息写入 `session_history`
+2. LLM 分析对话，提取关键信息
+3. 结构化知识连同向量嵌入写入 `memvergeprofile`
+4. `citations` 表记录每条知识的来源对话
+
+**检索流程**
+1. **Query：** 用户提问或系统需要上下文
+2. **语义搜索：** 通过向量嵌入匹配相关知识
+3. **检索返回：** 输出匹配的画像条目及其来源对话
+4. **上下文追溯：** 引用信息可回溯至原始对话
+
+
+#### 数据库结构：画像记忆表
+
+MemMachine 基于 **PostgreSQL** 并结合 `pgvector` 扩展实现高效的向量相似度搜索。可将其理解为一套可以快速找到相似信息的机制。系统将画像记忆组织在**三张核心表**中，分别用于存储用户画像、对话历史及两者之间的关联关系。
 
 
 <Tabs>
-    <Tab title ="Profile Table">
- **Description:** This is the main table for storing a user's profile and their features. We use **vector embeddings** in this table to give us a powerful way to perform **semantic searches**.
+    <Tab title ="Profile 表">
+ **说明：** 这是存储用户画像及其特征的主表，配合**向量嵌入**实现强大的**语义搜索**。
  
- **Purpose:** This is where we store a user's profile information. We use **key-value pairs** and **vector embeddings** to make it easy to find relevant user characteristics quickly through a **semantic search**.
+ **用途：** 以键值对与向量嵌入形式保存用户画像，使系统可以通过语义检索快速定位相关特征。
 
-Here's an example Profile table:
+示例结构：
 ```bash
 Column   |           Type           | Collation | Nullable |             Default              
 ------------+--------------------------+-----------+----------+----------------------------------
@@ -66,30 +66,30 @@ Referenced by:
     TABLE "citations" CONSTRAINT "citations_profile_id_fkey" FOREIGN KEY (profile_id) REFERENCES prof(id) ON DELETE CASCADE
 ```
 
-Here are the fields you'll find in this table:
+表中包含以下字段：
 
-| Field       | Explanation                                                  |
+| 字段        | 说明                                                         |
 | ----------- | ------------------------------------------------------------ |
-| id        | Unique identifier for each knowledge entry. |
-| user_id   | This integer is a unique ID specific to the user that is interacting with the agent.  The ID organizes all information about the user, and only this user. |
-| tag       | A high-level categorization (e.g., "Preferences", "Skills", "Background"). |
-| feature   | An executive summary of the information (e.g., "likes_pizza", "programming_language") |
-| value     | Detailed content of the knowledge (e.g., "Margherita with extra cheese", "Python, JavaScript, Go") |
-| create_at | This is a timestamp for when the listing in the table was created. |
-| update_at | This is a timestamp for when the listing in the table was last updated. |
-| embedding | MemMachine creates a detailed 1536-trait numerical fingerprint for each memory, enabling smart, meaning-based searches to find the most relevant context. |
-| metadata  | A JSONB field for storing additional structured information about the knowledge entry. |
-| isolations | A JSONB field for storing isolation parameters, which can be used to restrict access to certain knowledge entries based on specific criteria. |
+| id          | 每条知识的唯一标识。                                         |
+| user_id     | 与智能体互动的用户唯一 ID，用于归档该用户的全部信息。        |
+| tag         | 高层级分类（如 “Preferences”、“Skills”、“Background”）。   |
+| feature     | 信息摘要（如 “likes_pizza”、“programming_language”）。      |
+| value       | 对应的具体内容（如 “Margherita with extra cheese”、“Python, JavaScript, Go”）。 |
+| create_at   | 记录创建时间。                                               |
+| update_at   | 记录最近更新时间。                                           |
+| embedding   | 1536 维向量，为每条记忆生成独特“指纹”，支持语义检索。       |
+| metadata    | JSONB 字段，存储额外结构化信息。                             |
+| isolations  | JSONB 字段，存储隔离参数，可根据条件限制访问。               |
 
-<Note> The `unique_utfv` constraint ensures no duplicate knowledge entries for the same user, tag, feature, and value combination. </Note>
+<Note>`unique_utfv` 约束确保同一用户的相同 tag、feature、value 组合不会重复。</Note>
 </Tab>
-    <Tab title="History Table">
+    <Tab title="History 表">
 
-**Description:** This table holds all the messages and interactions from a conversation. It's how the system can remember **context** and refer back to what was said, allowing for a more coherent and helpful experience.
+**说明：** 该表存储对话中的所有消息与交互，帮助系统保留**上下文**并随时回溯，提升对话连贯性。
 
-**Purpose:** This table maintains a **history** of conversations and interactions. This record helps build comprehensive user profiles and provides crucial **context**.
+**用途：** 维护对话与交互的**历史记录**，为丰富画像和提供上下文支撑。
 
-Below is an example of a History Table:
+示例结构：
 ```bash
    Column   |           Type           | Collation | Nullable |               Default               
 ------------+--------------------------+-----------+----------+-------------------------------------
@@ -104,25 +104,25 @@ Indexes:
 Referenced by:
     TABLE "citations" CONSTRAINT "citations_content_id_fkey" FOREIGN KEY (content_id) REFERENCES history(id) ON DELETE CASCADE
 ```
-Here are the fields you'll find in this table:
+表字段说明：
 
-| Field       | Explanation                                                  |
+| 字段        | 说明                                                         |
 | ----------- | ------------------------------------------------------------ |
-| id          | Unique identifier for each conversation entry. |
-| user_id     | This integer is a unique ID specific to the user that is interacting with the agent.  The ID organizes all information about the user, and only this user. |
-| content     | The actual conversation text |
-| create_at  | This is a timestamp for when the listing in the table was created. |
-| metadata    | A JSONB field for storing additional structured information about the conversation entry. |
-| isolations | A JSONB field for storing isolation parameters, which can be used to restrict access to certain conversation entries based on specific criteria. |
+| id          | 每条对话记录的唯一标识。                                     |
+| user_id     | 对话关联的用户 ID。                                          |
+| content     | 对话文本内容。                                               |
+| create_at   | 记录创建时间。                                               |
+| metadata    | JSONB 字段，存储额外结构信息。                               |
+| isolations  | JSONB 字段，存储隔离参数，可基于特定条件限制访问。           |
 
 </Tab>
-    <Tab title="Citations Table">
+    <Tab title="Citations 表">
 
-**Description:** This table acts as a link between a user's profile and their conversation history. It connects profile features to the specific conversations that support or cite them.
+**说明：** 作为用户画像与对话历史之间的连接表，将画像特征与支撑它的对话条目关联起来。
 
-** Purpose:** This table links profile features to the conversation history that created them. This lets you trace exactly where a feature came from and confirm its validity.
+**用途：** 便于追踪某个画像特征的来源，验证其可靠性。
 
-Below is an example of a Citations Table:
+示例结构：
 ```bash
     Column   |  Type   | Collation | Nullable | Default 
 ------------+---------+-----------+----------+---------
@@ -134,10 +134,10 @@ Foreign-key constraints:
     "citations_content_id_fkey" FOREIGN KEY (content_id) REFERENCES history(id) ON DELETE CASCADE
     "citations_profile_id_fkey" FOREIGN KEY (profile_id) REFERENCES prof(id) ON DELETE CASCADEgit st
 ```
-This table consists of the following fields:
-| Field       | Explanation                                                  |
+表字段说明：
+| 字段        | 说明                                                         |
 | ----------- | ------------------------------------------------------------ |
-| profile_id  | References the knowledge entry in `memvergeprofile` |
-| content_id  | References the conversation source in `session_history` |
+| profile_id  | 指向 `memvergeprofile` 中的画像条目。                         |
+| content_id  | 指向 `session_history` 中的对话记录。                         |
     </Tab>
 </Tabs>

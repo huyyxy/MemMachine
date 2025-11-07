@@ -1,24 +1,24 @@
 ---
-title: "Architectural Overview"
-description: "How MemMachine Works"
+title: "架构概览"
+description: "MemMachine 的工作方式"
 icon: "book"
 ---
 
-## MemMachine behind the Cover
+## MemMachine 幕后揭秘
 
-MemMachine, like any machine, consists of several different components that work together to store memory intelligently, retrieve memory intelligently, and use the right memory combination to assist AI Agents in generating the best output for a given question or query.
+MemMachine 与其他复杂系统一样，由多个组件协同构成。这些组件共同负责智能地存储与检索记忆，并在回答问题或执行任务时选择最合适的记忆组合，为 AI 智能体提供精准支持。
 
-In this section we'll dive into an overview of the various components of MemMachine, discuss how each of the larger areas work together, and provide links to more information for each component.
+本节将概览 MemMachine 的各个组成部分，介绍它们如何协同运作，并提供指向详细文档的链接，方便你深入了解每个模块。
 
-## Overview of components
+## 组件总览
 
 <img height="200" src="../images/memmachine-overview2.png" />
 
-### Memory Types
+### 记忆类型
 
-MemMachine works as an intelligent memory layer on top of a user's Agentic LLM experience.  It gathers input via Python APIs in a Memory Instance, then determines if that input is profile, short-term and/or long-term:  
- - **Profile memory** consists of information specific to the user and their experience.  It is consumed by the Profile Engine.
- - **Short-term memory** consists of episodic memory and summaries of the episodic memory.  A raw episode consists of 1 message. 
- - **Long-term memory** consists of a batch of episodes that is generated from the short-term memories.  The Episode batch is then ranked using a Reranker and deduplicated for the most frequent hits.  
+MemMachine 作为智能记忆层，覆盖在用户的 Agentic LLM 体验之上。它通过 Python API 聚合输入，并判断这些输入属于画像记忆、短期记忆或长期记忆：  
+ - **画像记忆（Profile Memory）**：记录用户及其体验的特定信息，由 Profile 引擎消费。
+ - **短期记忆（Short-term Memory）**：由情景记忆（episodic memory）及其摘要构成。一个原始 Episode 对应一条消息。
+ - **长期记忆（Long-term Memory）**：由短期记忆生成的 Episode 批次构成，随后通过重排器（Reranker）打分，并对高频命中结果去重。
 
- For more information about how MemMachine uses memory, please check out our [Memory Types](./memory_types.mdx) page.
+ 想了解 MemMachine 如何使用不同类型的记忆，请参阅 [Memory Types](./memory_types.mdx)。
