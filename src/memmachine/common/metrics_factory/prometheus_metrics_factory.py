@@ -1,8 +1,8 @@
 """
-Prometheus-based metrics factory and metrics implementations.
+基于 Prometheus 的指标工厂和指标实现。
 
-Uses the prometheus_client library
-to create and manage Prometheus metrics.
+使用 prometheus_client 库
+来创建和管理 Prometheus 指标。
 """
 
 from collections.abc import Iterable
@@ -17,12 +17,12 @@ from .metrics_factory import MetricsFactory
 
 class PrometheusMetricsFactory(MetricsFactory):
     """
-    Prometheus-based implementation of MetricsFactory.
+    基于 Prometheus 的 MetricsFactory 实现。
     """
 
     class Counter(MetricsFactory.Counter):
         """
-        Prometheus-based implementation of a counter metric.
+        基于 Prometheus 的计数器指标实现。
         """
 
         def __init__(self, counter: PrometheusCounter):
@@ -36,7 +36,7 @@ class PrometheusMetricsFactory(MetricsFactory):
 
     class Gauge(MetricsFactory.Gauge):
         """
-        Prometheus-based implementation of a gauge metric.
+        基于 Prometheus 的仪表盘指标实现。
         """
 
         def __init__(self, gauge: PrometheusGauge):
@@ -50,7 +50,7 @@ class PrometheusMetricsFactory(MetricsFactory):
 
     class Histogram(MetricsFactory.Histogram):
         """
-        Prometheus-based implementation of a histogram metric.
+        基于 Prometheus 的直方图指标实现。
         """
 
         def __init__(self, histogram: PrometheusHistogram):
@@ -64,7 +64,7 @@ class PrometheusMetricsFactory(MetricsFactory):
 
     class Summary(MetricsFactory.Summary):
         """
-        Prometheus-based implementation of a summary metric.
+        基于 Prometheus 的汇总指标实现。
         """
 
         def __init__(self, summary: PrometheusSummary):
@@ -76,7 +76,7 @@ class PrometheusMetricsFactory(MetricsFactory):
             else:
                 self._summary.observe(value)
 
-    # Dictionary to store created metrics by name.
+    # 用于按名称存储已创建指标的字典。
     _metrics: dict[str, Counter | Gauge | Histogram | Summary] = {}
 
     def get_counter(

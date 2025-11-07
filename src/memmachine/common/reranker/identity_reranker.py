@@ -1,5 +1,5 @@
 """
-Identity reranker implementation.
+基于身份的重新排序器实现。
 """
 
 from .reranker import Reranker
@@ -7,8 +7,8 @@ from .reranker import Reranker
 
 class IdentityReranker(Reranker):
     """
-    Reranker that returns candidates in their original order
-    without any reordering.
+    返回候选项的原始顺序的重新排序器，
+    不进行任何重新排序。
     """
 
     async def score(self, query: str, candidates: list[str]) -> list[float]:

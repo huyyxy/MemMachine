@@ -1,11 +1,11 @@
 """
-Common data types for MemMachine.
+MemMachine 的通用数据类型。
 """
 
 
 class ExternalServiceAPIError(Exception):
     """
-    Raised when an API error occurs for an external service.
+    当外部服务的 API 发生错误时抛出此异常。
     """
 
     pass

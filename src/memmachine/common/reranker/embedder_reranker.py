@@ -1,5 +1,5 @@
 """
-Embedder-based reranker implementation.
+基于嵌入模型的重新排序器实现。
 """
 
 import numpy as np
@@ -12,31 +12,30 @@ from .reranker import Reranker
 
 class EmbedderRerankerParams(BaseModel):
     """
-    Parameters for EmbedderReranker.
+    EmbedderReranker 的参数。
 
-    Attributes:
+    属性:
         embedder (Embedder):
-            Embedder instance.
+            嵌入器实例。
     """
 
     embedder: InstanceOf[Embedder] = Field(
-        ..., description="An instance of an Embedder to use for generating embeddings"
+        ..., description="用于生成嵌入向量的嵌入器实例"
     )
 
 
 class EmbedderReranker(Reranker):
     """
-    Reranker that uses an embedder
-    to score relevance of candidates to a query.
+    使用嵌入器对候选项与查询的相关性进行评分的重新排序器。
     """
 
     def __init__(self, params: EmbedderRerankerParams):
         """
-        Initialize an EmbedderReranker with the provided configuration.
+        使用提供的配置初始化 EmbedderReranker。
 
-        Args:
+        参数:
             params (EmbedderRerankerParams):
-                Parameters for the EmbedderReranker.
+                EmbedderReranker 的参数。
         """
         super().__init__()
 
@@ -70,7 +69,7 @@ class EmbedderReranker(Reranker):
                     np.abs(candidate_embeddings - query_embedding), axis=-1
                 )
             case _:
-                # Default to cosine similarity.
+                # 默认使用余弦相似度。
                 magnitude_products = np.linalg.norm(
                     candidate_embeddings, axis=-1
                 ) * np.linalg.norm(query_embedding)

@@ -1,5 +1,5 @@
 """
-Builder for MetricsFactory instances.
+用于构建 MetricsFactory 实例的构建器。
 """
 
 from typing import Any
@@ -11,7 +11,7 @@ from .metrics_factory import MetricsFactory
 
 class MetricsFactoryBuilder(Builder):
     """
-    Builder for MetricsFactory instances.
+    用于构建 MetricsFactory 实例的构建器。
     """
 
     @staticmethod

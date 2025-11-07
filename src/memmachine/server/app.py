@@ -1,18 +1,15 @@
-"""FastAPI application for the MemMachine memory system.
+"""MemMachine 内存系统的 FastAPI 应用程序。
 
-This module sets up and runs a FastAPI web server that provides endpoints for
-interacting with the Profile Memory and Episodic Memory components.
-It includes:
-- API endpoints for adding and searching memories.
-- Integration with FastMCP for exposing memory functions as tools to LLMs.
-- Pydantic models for request and response validation.
-- Lifespan management for initializing and cleaning up resources like database
-  connections and memory managers.
+本模块设置并运行一个 FastAPI Web 服务器，提供与 Profile Memory 和 Episodic Memory 组件交互的端点。
+它包括：
+- 用于添加和搜索记忆的 API 端点。
+- 与 FastMCP 的集成，用于将内存函数作为工具暴露给 LLM。
+- 用于请求和响应验证的 Pydantic 模型。
+- 用于初始化和清理资源（如数据库连接和内存管理器）的生命周期管理。
 """
 
 import argparse
 import asyncio
-import contextvars
 import copy
 import logging
 import os
@@ -27,12 +24,9 @@ from fastapi import FastAPI, Header, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.params import Depends
 from fastapi.responses import Response
-from fastmcp import FastMCP
-from fastmcp.server.http import StarletteWithLifespan
+from fastmcp import Context, FastMCP
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from pydantic import BaseModel, Field, model_validator
-from starlette.applications import Starlette
-from starlette.types import Lifespan, Receive, Scope, Send
 
 from memmachine.common.embedder import EmbedderBuilder
 from memmachine.common.language_model import LanguageModelBuilder
@@ -53,76 +47,76 @@ logger = logging.getLogger(__name__)
 
 
 class AppConst:
-    """Constants for app and header key names."""
+    """应用程序和请求头键名的常量。"""
 
     DEFAULT_GROUP_ID = "default"
-    """Default value for group id when not provided."""
+    """未提供时的默认组 ID 值。"""
 
     DEFAULT_SESSION_ID = "default"
-    """Default value for session id when not provided."""
+    """未提供时的默认会话 ID 值。"""
 
     DEFAULT_USER_ID = "default"
-    """Default value for user id when not provided."""
+    """未提供时的默认用户 ID 值。"""
 
     DEFAULT_PRODUCER_ID = "default"
-    """Default value for producer id when not provided."""
+    """未提供时的默认生产者 ID 值。"""
 
     DEFAULT_EPISODE_TYPE = "message"
-    """Default value for episode type when not provided."""
+    """未提供时的默认事件类型值。"""
 
     GROUP_ID_KEY = "group-id"
-    """Header key for group ID."""
+    """组 ID 的请求头键。"""
 
     SESSION_ID_KEY = "session-id"
-    """Header key for session ID."""
+    """会话 ID 的请求头键。"""
 
     AGENT_ID_KEY = "agent-id"
-    """Header key for agent ID."""
+    """代理 ID 的请求头键。"""
 
     USER_ID_KEY = "user-id"
-    """Header key for user ID."""
+    """用户 ID 的请求头键。"""
 
     GROUP_ID_DOC = (
-        "Unique identifier for a group or shared context. "
-        "Used as the main filtering property. "
-        "For single-user use cases, this can be the same as `user_id`. "
-        "Defaults to `default` if not provided and user ids is empty. "
-        "Defaults to the first user id if user ids are provided."
+        "组或共享上下文的唯一标识符。"
+        "用作主要过滤属性。"
+        "对于单用户用例，可以与 `user_id` 相同。"
+        "如果未提供且用户 ID 为空，则默认为 `default`。"
+        "如果提供了用户 ID，则默认为第一个用户 ID。"
     )
 
     AGENT_ID_DOC = (
-        "List of agent identifiers associated with this session. "
-        "Useful if multiple AI agents participate in the same context. "
-        "Defaults to `[]` if not provided."
+        "与此会话关联的代理标识符列表。"
+        "如果多个 AI 代理参与同一上下文，则很有用。"
+        "如果未提供，则默认为 `[]`。"
     )
 
     USER_ID_DOC = (
-        "List of user identifiers participating in this session. "
-        "Used to isolate memories and data per user. "
-        "Defaults to `['default']` if not provided."
+        "参与此会话的用户标识符列表。"
+        "用于按用户隔离记忆和数据。"
+        "如果未提供，则默认为 `['default']`。"
     )
 
     SESSION_ID_DOC = (
-        "Unique identifier for a specific session or conversation. "
-        "Can represent a chat thread, Slack channel, or conversation instance. "
-        "Should be unique per conversation to avoid data overlap. "
-        "Defaults 'default' if not provided and user ids is empty. "
-        "Defaults to the first `user_id` if user ids are provided."
+        "特定会话或对话的唯一标识符。"
+        "可以表示聊天线程、Slack 频道或对话实例。"
+        "每个对话应该是唯一的，以避免数据重叠。"
+        "如果未提供且用户 ID 为空，则默认为 'default'。"
+        "如果提供了用户 ID，则默认为第一个 `user_id`。"
     )
 
     PRODUCER_DOC = (
-        "Identifier of the entity producing the episode. "
-        "Default to the first `user_id` in the session if not provided. "
-        "Default to `default` if user_id is not available."
+        "产生事件的实体标识符。"
+        "如果未提供，则默认为会话中的第一个 `user_id`。"
+        "如果 user_id 不可用，则默认为 `default`。"
     )
 
-    PRODUCER_FOR_DOC = "Identifier of the entity for whom the episode is produced."
+    PRODUCER_FOR_DOC = "为其产生事件的实体标识符。"
 
-    EPISODE_CONTENT_DOC = "Content of the memory episode."
+    EPISODE_CONTENT_DOC = "记忆事件的内容。"
 
-    EPISODE_TYPE_DOC = "Type of the episode content (e.g., message)."
+    EPISODE_TYPE_DOC = "事件内容的类型（例如，消息）。"
 
-    EPISODE_META_DOC = "Additional metadata for the episode."
+    EPISODE_META_DOC = "事件的附加元数据。"
 
     GROUP_ID_EXAMPLES = ["group-1234", "project-alpha", "team-chat"]
     AGENT_ID_EXAMPLES = ["crm", "healthcare", "sales", "agent-007"]
@@ -135,15 +129,15 @@ class AppConst:
     EPISODE_META_EXAMPLES = [{"mood": "happy", "location": "office"}]
 
 
-# Request session data
+# 请求会话数据
 class SessionData(BaseModel):
-    """Metadata used to organize and filter memory or conversation context.
+    """用于组织和过滤记忆或对话上下文的元数据。
 
-    Each ID serves a different level of data separation:
-    - `group_id`: identifies a shared context (e.g., a group chat or project).
-    - `user_id`: identifies individual participants within the group.
-    - `agent_id`: identifies the AI agent(s) involved in the session.
-    - `session_id`: identifies a specific conversation thread or session.
+    每个 ID 服务于不同级别的数据分离：
+    - `group_id`：标识共享上下文（例如，群聊或项目）。
+    - `user_id`：标识组内的个人参与者。
+    - `agent_id`：标识会话中涉及的 AI 代理。
+    - `session_id`：标识特定的对话线程或会话。
     """
 
     group_id: str = Field(
@@ -171,15 +165,15 @@ class SessionData(BaseModel):
     )
 
     def merge(self, other: Self) -> None:
-        """Merge another SessionData into this one in place.
+        """将另一个 SessionData 合并到此对象中（就地修改）。
 
-        - Combine and deduplicate list fields.
-        - Overwrite string fields if the new value is set.
+        - 合并并去重列表字段。
+        - 如果设置了新值，则覆盖字符串字段。
         """
 
         def merge_lists(a: list[str], b: list[str]) -> list[str]:
             if a and b:
-                ret = list(dict.fromkeys(a + b))  # preserve order & unique
+                ret = list(dict.fromkeys(a + b))  # 保留顺序和唯一性
             else:
                 ret = a or b
             return sorted(ret)
@@ -197,15 +191,15 @@ class SessionData(BaseModel):
         self.user_id = merge_lists(self.user_id, other.user_id)
 
     def first_user_id(self) -> str:
-        """Returns the first user ID if available, else default user id."""
+        """如果可用则返回第一个用户 ID，否则返回默认用户 ID。"""
         return self.user_id[0] if self.user_id else AppConst.DEFAULT_USER_ID
 
     def combined_user_ids(self) -> str:
-        """format groups id to <size>#<user-id><size>#<user-id>..."""
+        """将组 ID 格式化为 <size>#<user-id><size>#<user-id>..."""
         return "".join([f"{len(uid)}#{uid}" for uid in sorted(self.user_id)])
 
     def from_user_id_or(self, default_value: str) -> str:
-        """returns the first user id or combined user ids as a default string."""
+        """返回第一个用户 ID 或组合的用户 ID 作为默认字符串。"""
         size_user_id = len(self.user_id)
         if size_user_id == 0:
             return default_value
@@ -216,21 +210,21 @@ class SessionData(BaseModel):
 
     @model_validator(mode="after")
     def _set_default_group_id(self) -> Self:
-        """Defaults group_id to default gr."""
+        """如果未设置，则将 group_id 默认为默认组。"""
         if not self.group_id:
             self.group_id = self.from_user_id_or(AppConst.DEFAULT_GROUP_ID)
         return self
 
     @model_validator(mode="after")
     def _set_default_session_id(self) -> Self:
-        """Defaults session_id to 'default' if not set."""
+        """如果未设置，则将 session_id 默认为 'default'。"""
         if not self.session_id:
             self.session_id = self.from_user_id_or(AppConst.DEFAULT_SESSION_ID)
         return self
 
     @model_validator(mode="after")
     def _set_default_user_id(self) -> Self:
-        """Defaults user_id to ['default'] if not set."""
+        """如果未设置，则将 user_id 默认为 ['default']。"""
         if len(self.user_id) == 0 and len(self.agent_id) == 0:
             self.user_id = [AppConst.DEFAULT_USER_ID]
         else:
@@ -238,8 +232,7 @@ class SessionData(BaseModel):
         return self
 
     def is_valid(self) -> bool:
-        """Return False if the session data is invalid (both group_id and
-        session_id are empty), True otherwise.
+        """如果会话数据无效（group_id 和 session_id 都为空），则返回 False，否则返回 True。
         """
         return (
             self.group_id != "" and self.session_id != "" and self.first_user_id() != ""
@@ -247,12 +240,13 @@ class SessionData(BaseModel):
 
 
 class RequestWithSession(BaseModel):
-    """Base class for requests that include session data."""
+    """包含会话数据的请求的基类。"""
 
     session: SessionData | None = Field(
         None,
-        description="Session field in the body is deprecated. "
-        "Use header-based session instead.",
+        deprecated=True,
+        description="请求体中的 session 字段已弃用。"
+        "请改用基于请求头的会话。",
     )
 
     def log_error_with_session(self, e: HTTPException, message: str):
@@ -284,10 +278,10 @@ class RequestWithSession(BaseModel):
         )
 
     def merge_session(self, session: SessionData) -> None:
-        """Merge another SessionData into this one in place.
+        """将另一个 SessionData 合并到此对象中（就地修改）。
 
-        - Combine and deduplicate list fields.
-        - Overwrite string fields if the new value is set.
+        - 合并并去重列表字段。
+        - 如果设置了新值，则覆盖字符串字段。
         """
         if self.session is None:
             self.session = session
@@ -295,12 +289,12 @@ class RequestWithSession(BaseModel):
             self.session.merge(session)
 
     def validate_session(self) -> None:
-        """Validate that the session data is not empty.
-        Raises:
-            RequestValidationError: If the session data is empty.
+        """验证会话数据不为空。
+        抛出:
+            RequestValidationError: 如果会话数据为空。
         """
         if self.session is None or not self.session.is_valid():
-            # Raise the same type of validation error FastAPI uses
+            # 抛出与 FastAPI 使用的相同类型的验证错误
             raise RequestValidationError(
                 [
                     {
@@ -312,20 +306,20 @@ class RequestWithSession(BaseModel):
             )
 
     def merge_and_validate_session(self, other: SessionData) -> None:
-        """Merge another SessionData into this one in place and validate.
+        """将另一个 SessionData 合并到此对象中并验证（就地修改）。
 
-        - Combine and deduplicate list fields.
-        - Overwrite string fields if the new value is set.
-        - Validate that the resulting session data is not empty.
+        - 合并并去重列表字段。
+        - 如果设置了新值，则覆盖字符串字段。
+        - 验证结果会话数据不为空。
 
-        Raises:
-            RequestValidationError: If the resulting session data is empty.
+        抛出:
+            RequestValidationError: 如果结果会话数据为空。
         """
         self.merge_session(other)
         self.validate_session()
 
     def update_response_session_header(self, response: Response | None) -> None:
-        """Update the response headers with the session data."""
+        """使用会话数据更新响应头。"""
         if response is None:
             return
         sess = self.get_session()
@@ -339,9 +333,9 @@ class RequestWithSession(BaseModel):
             response.headers[AppConst.USER_ID_KEY] = ",".join(sess.user_id)
 
 
-# === Request Models ===
+# === 请求模型 ===
 class NewEpisode(RequestWithSession):
-    """Request model for adding a new memory episode."""
+    """添加新记忆事件的请求模型。"""
 
     producer: str = Field(
         default="",
@@ -375,17 +369,17 @@ class NewEpisode(RequestWithSession):
 
     @model_validator(mode="after")
     def _set_default_producer_id(self) -> Self:
-        """Defaults session_id to 'default' if not set."""
+        """如果未设置，则将 producer 默认为第一个用户 ID 或 'default'。"""
         if self.producer == "":
             if self.session is not None:
                 self.producer = self.session.from_user_id_or("")
         if self.producer == "":
-            self.session_id = AppConst.DEFAULT_PRODUCER_ID
+            self.producer = AppConst.DEFAULT_PRODUCER_ID
         return self
 
 
 class SearchQuery(RequestWithSession):
-    """Request model for searching memories."""
+    """搜索记忆的请求模型。"""
 
     query: str
     filter: dict[str, Any] | None = None
@@ -423,7 +417,7 @@ async def _get_session_from_header(
         examples=AppConst.USER_ID_EXAMPLES,
     ),
 ) -> SessionData:
-    """Extract session data from headers and return a SessionData object."""
+    """从请求头提取会话数据并返回 SessionData 对象。"""
     group_id_keys = [AppConst.GROUP_ID_KEY, "group_id"]
     session_id_keys = [AppConst.SESSION_ID_KEY, "session_id"]
     agent_id_keys = [AppConst.AGENT_ID_KEY, "agent_id"]
@@ -449,16 +443,16 @@ async def _get_session_from_header(
     )
 
 
-# === Response Models ===
+# === 响应模型 ===
 class SearchResult(BaseModel):
-    """Response model for memory search results."""
+    """记忆搜索结果的响应模型。"""
 
     status: int = 0
     content: dict[str, Any]
 
 
 class MemorySession(BaseModel):
-    """Response model for session information."""
+    """会话信息的响应模型。"""
 
     user_ids: list[str]
     session_id: str
@@ -467,53 +461,51 @@ class MemorySession(BaseModel):
 
 
 class AllSessionsResponse(BaseModel):
-    """Response model for listing all sessions."""
+    """列出所有会话的响应模型。"""
 
     sessions: list[MemorySession]
 
 
 class DeleteDataRequest(RequestWithSession):
-    """Request model for deleting all data for a session."""
+    """删除会话所有数据的请求模型。"""
 
     pass
 
 
-# === Globals ===
-# Global instances for memory managers, initialized during app startup.
+# === 全局变量 ===
+# 内存管理器的全局实例，在应用程序启动时初始化。
 profile_memory: ProfileMemory | None = None
 episodic_memory: EpisodicMemoryManager | None = None
 
 
-# === Lifespan Management ===
+# === 生命周期管理 ===
 
 
 async def initialize_resource(
     config_file: str,
 ) -> tuple[EpisodicMemoryManager, ProfileMemory]:
     """
-    This is a temporary solution to unify the ProfileMemory and Episodic Memory
-    configuration.
-    Initializes the ProfileMemory and EpisodicMemoryManager instances,
-    and establishes necessary connections (e.g., to the database).
-    These resources are cleaned up on shutdown.
-    Args:
-        config_file: The path to the configuration file.
-    Returns:
-        A tuple containing the EpisodicMemoryManager and ProfileMemory instances.
+    这是一个临时解决方案，用于统一 ProfileMemory 和 Episodic Memory 的配置。
+    初始化 ProfileMemory 和 EpisodicMemoryManager 实例，
+    并建立必要的连接（例如，到数据库）。
+    这些资源在关闭时会被清理。
+    参数:
+        config_file: 配置文件的路径。
+    返回:
+        包含 EpisodicMemoryManager 和 ProfileMemory 实例的元组。
     """
 
     try:
         yaml_config = yaml.safe_load(open(config_file, encoding="utf-8"))
     except FileNotFoundError:
-        raise FileNotFoundError(f"Config file {config_file} not found")
+        raise FileNotFoundError(f"配置文件 {config_file} 未找到")
     except yaml.YAMLError:
-        raise ValueError(f"Config file {config_file} is not valid YAML")
+        raise ValueError(f"配置文件 {config_file} 不是有效的 YAML")
     except Exception as e:
         raise e
 
     def config_to_lowercase(data: Any) -> Any:
-        """Recursively converts all dictionary keys in a nested structure
-        to lowercase."""
+        """递归地将嵌套结构中的所有字典键转换为小写。"""
         if isinstance(data, dict):
             return {k.lower(): config_to_lowercase(v) for k, v in data.items()}
         if isinstance(data, list):
@@ -522,19 +514,19 @@ async def initialize_resource(
 
     yaml_config = config_to_lowercase(yaml_config)
 
-    # if the model is defined in the config, use it.
+    # 如果配置中定义了模型，则使用它。
     profile_config = yaml_config.get("profile_memory", {})
 
-    # create LLM model from the configuration
+    # 从配置创建 LLM 模型
     model_config = yaml_config.get("model", {})
 
     model_name = profile_config.get("llm_model")
     if model_name is None:
-        raise ValueError("Model not configured in config file for profile memory")
+        raise ValueError("配置文件中未为 profile memory 配置模型")
 
     model_def = model_config.get(model_name)
     if model_def is None:
-        raise ValueError(f"Can not find definition of model{model_name}")
+        raise ValueError(f"无法找到模型 {model_name} 的定义")
 
     profile_model = copy.deepcopy(model_def)
     metrics_manager = MetricsFactoryBuilder.build("prometheus", {}, {})
@@ -546,17 +538,17 @@ async def initialize_resource(
         model_vendor, profile_model, metrics_injection
     )
 
-    # create embedder
+    # 创建嵌入器
     embedders = yaml_config.get("embedder", {})
     embedder_id = profile_config.get("embedding_model")
     if embedder_id is None:
         raise ValueError(
-            "Embedding model not configured in config file for profile memory"
+            "配置文件中未为 profile memory 配置嵌入模型"
         )
 
     embedder_def = embedders.get(embedder_id)
     if embedder_def is None:
-        raise ValueError(f"Can not find definition of embedder {embedder_id}")
+        raise ValueError(f"无法找到嵌入器 {embedder_id} 的定义")
 
     embedder_config = copy.deepcopy(embedder_def["config"])
     if embedder_def["name"] == "openai":
@@ -566,15 +558,15 @@ async def initialize_resource(
         embedder_def["name"], embedder_config, metrics_injection
     )
 
-    # Get the database configuration
-    # get DB config from configuration file is available
+    # 获取数据库配置
+    # 如果配置文件中可用，则从配置文件获取数据库配置
     db_config_name = profile_config.get("database")
     if db_config_name is None:
-        raise ValueError("Profile database not configured in config file")
+        raise ValueError("配置文件中未配置 Profile 数据库")
     db_config = yaml_config.get("storage", {})
     db_config = db_config.get(db_config_name)
     if db_config is None:
-        raise ValueError(f"Can not find configuration for database {db_config_name}")
+        raise ValueError(f"无法找到数据库 {db_config_name} 的配置")
 
     prompt_file = profile_config.get("prompt", "profile_prompt")
     prompt_module = import_module(f".prompt.{prompt_file}", __package__)
@@ -600,243 +592,44 @@ async def initialize_resource(
     return episodic_memory, profile_memory
 
 
-async def init_global_memory():
+@asynccontextmanager
+async def http_app_lifespan(application: FastAPI):
+    """处理应用程序启动和关闭事件。
+
+    初始化 ProfileMemory 和 EpisodicMemoryManager 实例，
+    并建立必要的连接（例如，到数据库）。
+    这些资源在关闭时会被清理。
+
+    参数:
+        application: FastAPI 应用程序实例。
+    """
     config_file = os.getenv("MEMORY_CONFIG", "cfg.yml")
 
     global episodic_memory
     global profile_memory
     episodic_memory, profile_memory = await initialize_resource(config_file)
     await profile_memory.startup()
-
-
-async def shutdown_global_memory():
-    global episodic_memory
-    global profile_memory
-    if profile_memory is not None:
-        await profile_memory.cleanup()
-    if episodic_memory is not None:
-        await episodic_memory.shut_down()
-
-
-@asynccontextmanager
-async def global_memory_lifespan():
-    """Handles application startup and shutdown events.
-
-    Initializes the ProfileMemory and EpisodicMemoryManager instances,
-    and establishes necessary connections (e.g., to the database).
-    These resources are cleaned up on shutdown.
-    """
-    await init_global_memory()
     yield
-    await shutdown_global_memory()
+    await profile_memory.cleanup()
+    await episodic_memory.shut_down()
 
 
-# Context variable to hold the current user for this request
-user_id_context_var: contextvars.ContextVar[str | None] = contextvars.ContextVar(
-    "user_id_context", default=None
-)
-
-
-def get_current_user_id() -> str | None:
-    """
-    Get the current user ID from the contextvar.
-
-    Returns:
-        The user_id if available, None otherwise.
-    """
-    return user_id_context_var.get()
-
-
-class UserIDContextMiddleware:
-    """
-    Middleware that extracts the user_id from the request and stores it
-    in a ContextVar for easy access within MCP tools.
-
-    Optionally override `user_id` from header "user-id".
-    """
-
-    def __init__(self, app: StarletteWithLifespan, header_name: str = "user-id"):
-        self.app = app
-        self.header_name = header_name
-
-    async def __call__(self, scope: Scope, receive: Receive, send: Send):
-        user_id: str | None = None
-
-        if scope.get("type") == "http":
-            headers = {
-                k.decode().lower(): v.decode() for k, v in scope.get("headers", [])
-            }
-            user_id = headers.get(self.header_name.lower(), None)
-
-        token = user_id_context_var.set(user_id)
-        try:
-            await self.app(scope, receive, send)
-        finally:
-            user_id_context_var.reset(token)
-
-    @property
-    def lifespan(self) -> Lifespan[Starlette]:
-        return self.app.lifespan
-
-
-class MemMachineFastMCP(FastMCP):
-    """Custom FastMCP subclass for MemMachine with authentication middleware."""
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-    def get_app(self, path: str | None = None) -> UserIDContextMiddleware:
-        """Override to add authentication middleware."""
-        http_app = super().http_app(path=path)
-        return UserIDContextMiddleware(http_app)
-
-
-class McpStatus:
-    """Status codes for MCP responses."""
-
-    SUCCESS = 200
-
-
-class McpResponse(BaseModel):
-    """Error model for MCP responses."""
-
-    status: int
-    """Error status code"""
-    message: str
-    """Error message"""
-
-
-mcpSuccess = McpResponse(status=McpStatus.SUCCESS, message="Success")
-
-
-class UserIDWithEnv(BaseModel):
-    """
-    Model with user_id that can be overridden by MM_USER_ID env var.
-    """
-
-    user_id: str = Field(
-        ...,
-        description=(
-            "The unique identifier of the user whose memory is being updated. "
-            "This ensures the new memory is stored under the correct profile."
-        ),
-        examples=["user"],
-    )
-
-    @model_validator(mode="after")
-    def _update_user(self):
-        """is MM_USER_ID env var set? If so, override user_id"""
-        env_user_id = os.environ.get("MM_USER_ID")
-        if env_user_id:
-            self.user_id = env_user_id
-        current_user_id = get_current_user_id()
-        if current_user_id:
-            self.user_id = current_user_id
-        return self
-
-
-class AddMemoryParam(UserIDWithEnv):
-    """
-    Parameters for adding memory.
-
-    This model is used by chatbots or agents to store important information
-    into memory for a specific user. The content should contain the **full
-    conversational or contextual summary**, not just a short fragment.
-
-    Chatbots should call this when they learn new facts about the user,
-    observe recurring behaviors, or summarize recent discussions.
-    """
-
-    content: str = Field(
-        ...,
-        description=(
-            "The complete context or summary to store in memory. "
-            "When adding memory, include **all relevant background**, "
-            "such as the current user message, prior conversation context, "
-            "and any inferred meaning or conclusions. "
-            "This allows future recall to be more accurate and useful."
-        ),
-        examples=[
-            (
-                "User discussed plans to visit Shanghai next month. "
-                "They enjoy historical architecture and local cuisine. "
-                "Mentioned interest in the Yu Garden and traditional tea houses."
-            )
-        ],
-    )
-
-    def get_new_episode(self) -> NewEpisode:
-        """Convert to NewEpisode object."""
-        session = SessionData(user_id=[self.user_id])
-        return NewEpisode(
-            session=session,
-            episode_content=self.content,
-            producer=self.user_id,
-            produced_for=self.user_id,
-        )
-
-
-class SearchMemoryParam(UserIDWithEnv):
-    """
-    Parameters for searching a user's memory.
-
-    This model is used by chatbots and agents to retrieve relevant
-    information from both **profile memory** (long-term traits and facts)
-    and **episodic memory** (past interactions and experiences).
-
-    Chatbots should call this search automatically when context or
-    prior information about the user or topic is missing.
-    """
-
-    query: str = Field(
-        ...,
-        description=(
-            "The current user message or topic of discussion. "
-            "This will be used as the semantic query to find related memories. "
-            "If the chatbot is unsure about context or past topics, use the current "
-            "user message as the query to recall relevant background."
-        ),
-        examples=["Tell me more about our trip to New York last summer."],
-    )
-
-    limit: int = Field(
-        5,
-        description=(
-            "The maximum number of memory entries to retrieve. "
-            "Defaults to 5 for efficiency. Increase if deeper recall is needed."
-        ),
-        ge=1,
-        le=50,
-        examples=[5],
-    )
-
-    def get_search_query(self) -> SearchQuery:
-        """Convert to SearchQuery object."""
-        session = SessionData(user_id=[self.user_id])
-        return SearchQuery(
-            session=session,
-            query=self.query,
-            limit=self.limit,
-        )
-
-
-mcp = MemMachineFastMCP("MemMachine")
-mcp_app = mcp.get_app("/")
+mcp = FastMCP("MemMachine")
+mcp_app = mcp.http_app("/")
 
 
 @asynccontextmanager
 async def mcp_http_lifespan(application: FastAPI):
-    """Manages the combined lifespan of the main app and the MCP app.
+    """管理主应用程序和 MCP 应用程序的合并生命周期。
 
-    This context manager chains the `http_app_lifespan` (for main application
-    resources like memory managers) and the `mcp_app.lifespan` (for
-    MCP-specific resources). It ensures that all resources are initialized on
-    startup and cleaned up on shutdown in the correct order.
+    此上下文管理器链接 `http_app_lifespan`（用于主应用程序资源，如内存管理器）
+    和 `mcp_app.lifespan`（用于 MCP 特定资源）。它确保所有资源在启动时初始化
+    并在关闭时按正确顺序清理。
 
-    Args:
-        application: The FastAPI application instance.
+    参数:
+        application: FastAPI 应用程序实例。
     """
-    async with global_memory_lifespan():
+    async with http_app_lifespan(application):
         async with mcp_app.lifespan(application):
             yield
 
@@ -845,90 +638,230 @@ app = FastAPI(lifespan=mcp_http_lifespan)
 app.mount("/mcp", mcp_app)
 
 
-@mcp.tool(
-    name="add_memory",
-    description=(
-        "Store important new information about the user or conversation into memory. "
-        "Use this automatically whenever the user shares new facts, preferences, "
-        "plans, emotions, or other details that could be useful for future context. "
-        "Include the **full conversation context** in the `content` field — not just a snippet. "
-        "This tool writes to both short-term (episodic) and long-term (profile) memory, "
-        "so that future interactions can recall relevant background knowledge even "
-        "across different sessions."
-    ),
-)
-async def mcp_add_memory(param: AddMemoryParam) -> McpResponse:
-    """
-    Add a new memory for the specified user.
+@mcp.tool()
+async def mcp_add_session_memory(episode: NewEpisode) -> dict[str, Any]:
+    """用于为特定会话添加记忆事件的 MCP 工具。它将事件添加到情景记忆和档案记忆。
 
-    The model should call this whenever it detects new information
-    worth remembering — for example, user preferences, recurring topics,
-    or summaries of recent exchanges.
+    此工具不需要上下文中预先存在的开放会话。
+    它直接使用 `NewEpisode` 对象中提供的会话数据添加记忆事件。
 
-    Args:
-        param: The memory entry containing the user ID and full context.
-    Returns:
-        McpResponse indicating success or failure.
+    参数:
+        episode: 完整的新事件数据，包括会话信息。
+
+    返回:
+        如果成功添加记忆，则状态为 0，否则状态为 -1 并包含错误消息。
     """
-    episode = param.get_new_episode()
     try:
         await _add_memory(episode)
     except HTTPException as e:
         episode.log_error_with_session(e, "Failed to add memory episode")
-        return McpResponse(status=e.status_code, message=str(e.detail))
-    return mcpSuccess
+        return {"status": -1, "error_msg": str(e)}
+    return {"status": 0, "error_msg": ""}
 
 
-@mcp.tool(
-    name="search_memory",
-    description=(
-        "Retrieve relevant context, memories or profile for a user whenever "
-        "context is missing or unclear. Use this whenever you need to recall "
-        "what has been previously discussed, "
-        "even if it was from an earlier conversation or session. "
-        "This searches both profile memory (long-term user traits and facts) "
-        "and episodic memory (past conversations and experiences)."
-    ),
-)
-async def mcp_search_memory(param: SearchMemoryParam) -> McpResponse | SearchResult:
+@mcp.tool()
+async def mcp_add_episodic_memory(episode: NewEpisode) -> dict[str, Any]:
+    """用于为特定会话添加记忆事件的 MCP 工具。它仅将事件添加到情景记忆。
+
+    此工具不需要上下文中预先存在的开放会话。
+    它直接使用 `NewEpisode` 对象中提供的会话数据添加记忆事件。
+
+    参数:
+        episode: 完整的新事件数据，包括会话信息。
+
+    返回:
+        如果成功添加记忆，则状态为 0，否则状态为 -1 并包含错误消息。
     """
-    Search memory for the specified user.
-    Args:
-        param: The search memory parameter
-    Returns:
-        McpResponse on failure, or SearchResult on success
-    """
-    query = param.get_search_query()
     try:
-        return await _search_memory(query)
+        await _add_episodic_memory(episode)
     except HTTPException as e:
-        query.log_error_with_session(e, "Failed to search memory")
-        return McpResponse(status=e.status_code, message=str(e.detail))
+        episode.log_error_with_session(e, "Failed to add memory episode")
+        return {"status": -1, "error_msg": str(e)}
+    return {"status": 0, "error_msg": ""}
 
 
-# === Route Handlers ===
+@mcp.tool()
+async def mcp_add_profile_memory(episode: NewEpisode) -> dict[str, Any]:
+    """用于为特定会话添加记忆事件的 MCP 工具。它仅将事件添加到档案记忆。
+
+    此工具不需要上下文中预先存在的开放会话。
+    它直接使用 `NewEpisode` 对象中提供的会话数据添加记忆事件。
+
+    参数:
+        episode: 完整的新事件数据，包括会话信息。
+
+    返回:
+        如果成功添加记忆，则状态为 0，否则状态为 -1 并包含错误消息。
+    """
+    try:
+        await _add_profile_memory(episode)
+    except HTTPException as e:
+        sess = episode.get_session()
+        session_name = f"""{sess.group_id}-{sess.agent_id}-
+                           {sess.user_id}-{sess.session_id}"""
+        logger.error("Failed to add memory episode for %s", session_name)
+        logger.error(e)
+        return {"status": -1, "error_msg": str(e)}
+    return {"status": 0, "error_msg": ""}
+
+
+@mcp.tool()
+async def mcp_search_episodic_memory(q: SearchQuery) -> SearchResult:
+    """在特定会话中搜索情景记忆的 MCP 工具。
+    此工具不需要上下文中预先存在的开放会话。
+    它仅搜索情景记忆以查找提供的查询。
+
+    参数:
+        q: 搜索查询。
+
+    返回:
+        如果成功，则返回 SearchResult 对象，否则返回 None。
+    """
+    return await _search_episodic_memory(q)
+
+
+@mcp.tool()
+async def mcp_search_profile_memory(q: SearchQuery) -> SearchResult:
+    """在特定会话中搜索档案记忆的 MCP 工具。
+    此工具不需要上下文中预先存在的开放会话。
+    它仅搜索档案记忆以查找提供的查询。
+
+    参数:
+        q: 搜索查询。
+
+    返回:
+        如果成功，则返回 SearchResult 对象，否则返回 None。
+    """
+    return await _search_profile_memory(q)
+
+
+@mcp.tool()
+async def mcp_search_session_memory(q: SearchQuery) -> SearchResult:
+    """在特定会话中搜索记忆的 MCP 工具。
+
+    此工具不需要上下文中预先存在的开放会话。
+    它在情景记忆和档案记忆中搜索提供的查询。
+
+    参数:
+        q: 搜索查询。
+
+    返回:
+        如果成功，则返回 SearchResult 对象，否则返回 None。
+    """
+    return await _search_memory(q)
+
+
+@mcp.tool()
+async def mcp_delete_session_data(sess: SessionData) -> dict[str, Any]:
+    """删除特定会话的所有数据的 MCP 工具。
+
+    此工具不需要上下文中预先存在的开放会话。
+    它删除与提供的会话数据关联的所有数据。
+
+    参数:
+        sess: 要删除所有记忆的会话数据。
+
+    返回:
+        如果删除成功，则状态为 0，否则状态为 -1 并包含错误消息。
+    """
+    try:
+        await _delete_session_data(DeleteDataRequest(session=sess))
+    except HTTPException as e:
+        session_name = f"""{sess.group_id}-{sess.agent_id}-
+                           {sess.user_id}-{sess.session_id}"""
+        logger.error("Failed to add memory episode for %s", session_name)
+        logger.error(e)
+        return {"status": -1, "error_msg": str(e)}
+    return {"status": 0, "error_msg": ""}
+
+
+@mcp.tool()
+async def mcp_delete_data(ctx: Context) -> dict[str, Any]:
+    """删除当前会话的所有数据的 MCP 工具。
+
+    此工具需要开放的记忆会话。它删除与 MCP 上下文中存储的会话关联的所有数据。
+
+    参数:
+        ctx: MCP 上下文。
+
+    返回:
+        如果删除成功，则状态为 0，否则状态为 -1 并包含错误消息。
+    """
+    try:
+        sess = ctx.get_state("session_data")
+        if sess is None:
+            return {"status": -1, "error_msg": "No session open"}
+        delete_data_req = DeleteDataRequest(session=sess)
+        await _delete_session_data(delete_data_req)
+    except HTTPException as e:
+        session_name = f"""{sess.group_id}-{sess.agent_id}-
+                           {sess.user_id}-{sess.session_id}"""
+        logger.error("Failed to add memory episode for %s", session_name)
+        logger.error(e)
+        return {"status": -1, "error_msg": str(e)}
+    return {"status": 0, "error_msg": ""}
+
+
+@mcp.resource("sessions://sessions")
+async def mcp_get_sessions() -> AllSessionsResponse:
+    """检索所有记忆会话的 MCP 资源。
+
+    返回:
+        包含所有会话列表的 AllSessionsResponse。
+    """
+    return await get_all_sessions()
+
+
+@mcp.resource("users://{user_id}/sessions")
+async def mcp_get_user_sessions(user_id: str) -> AllSessionsResponse:
+    """检索特定用户的所有会话的 MCP 资源。
+
+    返回:
+        包含该用户会话列表的 AllSessionsResponse。
+    """
+    return await get_sessions_for_user(user_id)
+
+
+@mcp.resource("groups://{group_id}/sessions")
+async def mcp_get_group_sessions(group_id: str) -> AllSessionsResponse:
+    """检索特定组的所有会话的 MCP 资源。
+
+    返回:
+        包含该组会话列表的 AllSessionsResponse。
+    """
+    return await get_sessions_for_group(group_id)
+
+
+@mcp.resource("agents://{agent_id}/sessions")
+async def mcp_get_agent_sessions(agent_id: str) -> AllSessionsResponse:
+    """检索特定代理的所有会话的 MCP 资源。
+
+    返回:
+        包含该代理会话列表的 AllSessionsResponse。
+    """
+    return await get_sessions_for_agent(agent_id)
+
+
+# === 路由处理器 ===
 @app.post("/v1/memories")
 async def add_memory(
     episode: NewEpisode,
     response: Response,
     session: SessionData = Depends(_get_session_from_header),  # type: ignore
 ):
-    """Adds a memory episode to both episodic and profile memory.
+    """将记忆事件添加到情景记忆和档案记忆。
 
-    This endpoint first retrieves the appropriate episodic memory instance
-    based on the session context (group, agent, user, session IDs). It then
-    adds the episode to the episodic memory. If successful, it also passes
-    the message to the profile memory for ingestion.
+    此端点首先根据会话上下文（组、代理、用户、会话 ID）检索适当的情景记忆实例。
+    然后将事件添加到情景记忆。如果成功，它还会将消息传递给档案记忆进行摄取。
 
-    Args:
-        episode: The NewEpisode object containing the memory details.
-        response: The HTTP response object to update headers.
-        session: The session data from headers to merge with the request.
+    参数:
+        episode: 包含记忆详情的 NewEpisode 对象。
+        response: 用于更新头的 HTTP 响应对象。
+        session: 从请求头合并的会话数据。
 
-    Raises:
-        HTTPException: 404 if no matching episodic memory instance is found.
-        HTTPException: 400 if the producer or produced_for IDs are invalid
-                       for the given context.
+    抛出:
+        HTTPException: 如果未找到匹配的情景记忆实例，则返回 404。
+        HTTPException: 如果 producer 或 produced_for ID 对给定上下文无效，则返回 400。
     """
     episode.merge_and_validate_session(session)
     episode.update_response_session_header(response)
@@ -936,10 +869,10 @@ async def add_memory(
 
 
 async def _add_memory(episode: NewEpisode):
-    """Adds a memory episode to both episodic and profile memory.
-    Internal function.  Shared by both REST API and MCP API
+    """将记忆事件添加到情景记忆和档案记忆。
+    内部函数。由 REST API 和 MCP API 共享。
 
-    See the docstring for add_memory() for details."""
+    有关详细信息，请参阅 add_memory() 的文档字符串。"""
     session = episode.get_session()
     group_id = session.group_id
     inst: EpisodicMemory | None = await cast(
@@ -989,22 +922,19 @@ async def add_episodic_memory(
     response: Response,
     session: SessionData = Depends(_get_session_from_header),  # type: ignore
 ):
-    """Adds a memory episode to episodic memory only.
+    """仅将记忆事件添加到情景记忆。
 
-    This endpoint first retrieves the appropriate episodic memory instance
-    based on the session context (group, agent, user, session IDs). It then
-    adds the episode to the episodic memory. If successful, it also passes
-    the message to the profile memory for ingestion.
+    此端点首先根据会话上下文（组、代理、用户、会话 ID）检索适当的情景记忆实例。
+    然后将事件添加到情景记忆。
 
-    Args:
-        episode: The NewEpisode object containing the memory details.
-        response: The HTTP response object to update headers.
-        session: The session data from headers to merge with the request.
+    参数:
+        episode: 包含记忆详情的 NewEpisode 对象。
+        response: 用于更新头的 HTTP 响应对象。
+        session: 从请求头合并的会话数据。
 
-    Raises:
-        HTTPException: 404 if no matching episodic memory instance is found.
-        HTTPException: 400 if the producer or produced_for IDs are invalid
-                       for the given context.
+    抛出:
+        HTTPException: 如果未找到匹配的情景记忆实例，则返回 404。
+        HTTPException: 如果 producer 或 produced_for ID 对给定上下文无效，则返回 400。
     """
     episode.merge_and_validate_session(session)
     episode.update_response_session_header(response)
@@ -1012,10 +942,10 @@ async def add_episodic_memory(
 
 
 async def _add_episodic_memory(episode: NewEpisode):
-    """Adds a memory episode to both episodic and profile memory.
-    Internal function.  Shared by both REST API and MCP API
+    """将记忆事件添加到情景记忆。
+    内部函数。由 REST API 和 MCP API 共享。
 
-    See the docstring for add_episodic_memory() for details.
+    有关详细信息，请参阅 add_episodic_memory() 的文档字符串。
     """
     session = episode.get_session()
     group_id = session.group_id
@@ -1053,22 +983,17 @@ async def add_profile_memory(
     response: Response,
     session: SessionData = Depends(_get_session_from_header),  # type: ignore
 ):
-    """Adds a memory episode to both profile memory.
+    """将记忆事件添加到档案记忆。
 
-    This endpoint first retrieves the appropriate episodic memory instance
-    based on the session context (group, agent, user, session IDs). It then
-    adds the episode to the episodic memory. If successful, it also passes
-    the message to the profile memory for ingestion.
+    此端点将事件添加到档案记忆进行摄取。
 
-    Args:
-        episode: The NewEpisode object containing the memory details.
-        response: The HTTP response object to update headers.
-        session: The session data from headers to merge with the request.
+    参数:
+        episode: 包含记忆详情的 NewEpisode 对象。
+        response: 用于更新头的 HTTP 响应对象。
+        session: 从请求头合并的会话数据。
 
-    Raises:
-        HTTPException: 404 if no matching episodic memory instance is found.
-        HTTPException: 400 if the producer or produced_for IDs are invalid
-                       for the given context.
+    抛出:
+        HTTPException: 如果发生错误，则返回相应的状态码。
     """
     episode.merge_and_validate_session(session)
     episode.update_response_session_header(response)
@@ -1076,10 +1001,10 @@ async def add_profile_memory(
 
 
 async def _add_profile_memory(episode: NewEpisode):
-    """Adds a memory episode to profile memory.
-    Internal function.  Shared by both REST API and MCP API
+    """将记忆事件添加到档案记忆。
+    内部函数。由 REST API 和 MCP API 共享。
 
-    See the docstring for add_profile_memory() for details.
+    有关详细信息，请参阅 add_profile_memory() 的文档字符串。
     """
     session = episode.get_session()
     group_id = session.group_id
@@ -1103,22 +1028,21 @@ async def search_memory(
     response: Response,
     session: SessionData = Depends(_get_session_from_header),  # type: ignore
 ) -> SearchResult:
-    """Searches for memories across both episodic and profile memory.
+    """在情景记忆和档案记忆中搜索记忆。
 
-    Retrieves the relevant episodic memory instance and then performs
-    concurrent searches in both the episodic memory and the profile memory.
-    The results are combined into a single response object.
+    检索相关的情景记忆实例，然后在情景记忆和档案记忆中执行并发搜索。
+    结果合并到单个响应对象中。
 
-    Args:
-        q: The SearchQuery object containing the query and context.
-        response: The HTTP response object to update headers.
-        session: The session data from headers to merge with the request.
+    参数:
+        q: 包含查询和上下文的 SearchQuery 对象。
+        response: 用于更新头的 HTTP 响应对象。
+        session: 从请求头合并的会话数据。
 
-    Returns:
-        A SearchResult object containing results from both memory types.
+    返回:
+        包含两种记忆类型结果的 SearchResult 对象。
 
-    Raises:
-        HTTPException: 404 if no matching episodic memory instance is found.
+    抛出:
+        HTTPException: 如果未找到匹配的情景记忆实例，则返回 404。
     """
     q.merge_and_validate_session(session)
     q.update_response_session_header(response)
@@ -1126,9 +1050,9 @@ async def search_memory(
 
 
 async def _search_memory(q: SearchQuery) -> SearchResult:
-    """Searches for memories across both episodic and profile memory.
-    Internal function.  Shared by both REST API and MCP API
-    See the docstring for search_memory() for details."""
+    """在情景记忆和档案记忆中搜索记忆。
+    内部函数。由 REST API 和 MCP API 共享。
+    有关详细信息，请参阅 search_memory() 的文档字符串。"""
     session = q.get_session()
     inst: EpisodicMemory | None = await cast(
         EpisodicMemoryManager, episodic_memory
@@ -1170,18 +1094,18 @@ async def search_episodic_memory(
     response: Response,
     session: SessionData = Depends(_get_session_from_header),  # type: ignore
 ) -> SearchResult:
-    """Searches for memories across both profile memory.
+    """在情景记忆中搜索记忆。
 
-    Args:
-        q: The SearchQuery object containing the query and context.
-        response: The HTTP response object to update headers.
-        session: The session data from headers to merge with the request.
+    参数:
+        q: 包含查询和上下文的 SearchQuery 对象。
+        response: 用于更新头的 HTTP 响应对象。
+        session: 从请求头合并的会话数据。
 
-    Returns:
-        A SearchResult object containing results from episodic memory.
+    返回:
+        包含情景记忆结果的 SearchResult 对象。
 
-    Raises:
-        HTTPException: 404 if no matching episodic memory instance is found.
+    抛出:
+        HTTPException: 如果未找到匹配的情景记忆实例，则返回 404。
     """
     q.merge_and_validate_session(session)
     q.update_response_session_header(response)
@@ -1189,9 +1113,9 @@ async def search_episodic_memory(
 
 
 async def _search_episodic_memory(q: SearchQuery) -> SearchResult:
-    """Searches for memories across episodic memory.
-    Internal function.  Shared by both REST API and MCP API
-    See the docstring for search_episodic_memory() for details.
+    """在情景记忆中搜索记忆。
+    内部函数。由 REST API 和 MCP API 共享。
+    有关详细信息，请参阅 search_episodic_memory() 的文档字符串。
     """
     session = q.get_session()
     group_id = session.group_id if session.group_id is not None else ""
@@ -1216,18 +1140,18 @@ async def search_profile_memory(
     response: Response,
     session: SessionData = Depends(_get_session_from_header),  # type: ignore
 ) -> SearchResult:
-    """Searches for memories across profile memory.
+    """在档案记忆中搜索记忆。
 
-    Args:
-        q: The SearchQuery object containing the query and context.
-        response: The HTTP response object to update headers.
-        session: The session data from headers to merge with the request.
+    参数:
+        q: 包含查询和上下文的 SearchQuery 对象。
+        response: 用于更新头的 HTTP 响应对象。
+        session: 从请求头合并的会话数据。
 
-    Returns:
-        A SearchResult object containing results from profile memory.
+    返回:
+        包含档案记忆结果的 SearchResult 对象。
 
-    Raises:
-        HTTPException: 404 if no matching episodic memory instance is found.
+    抛出:
+        HTTPException: 如果发生错误，则返回相应的状态码。
     """
     q.merge_and_validate_session(session)
     q.update_response_session_header(response)
@@ -1235,9 +1159,9 @@ async def search_profile_memory(
 
 
 async def _search_profile_memory(q: SearchQuery) -> SearchResult:
-    """Searches for memories across profile memory.
-    Internal function.  Shared by both REST API and MCP API
-    See the docstring for search_profile_memory() for details.
+    """在档案记忆中搜索记忆。
+    内部函数。由 REST API 和 MCP API 共享。
+    有关详细信息，请参阅 search_profile_memory() 的文档字符串。
     """
     session = q.get_session()
     user_id = session.user_id[0] if session.user_id is not None else ""
@@ -1262,11 +1186,11 @@ async def delete_session_data(
     session: SessionData = Depends(_get_session_from_header),  # type: ignore
 ):
     """
-    Delete data for a particular session
-    Args:
-        delete_req: The DeleteDataRequest object containing the session info.
-        response: The HTTP response object to update headers.
-        session: The session data from headers to merge with the request.
+    删除特定会话的数据
+    参数:
+        delete_req: 包含会话信息的 DeleteDataRequest 对象。
+        response: 用于更新头的 HTTP 响应对象。
+        session: 从请求头合并的会话数据。
     """
     delete_req.merge_and_validate_session(session)
     delete_req.update_response_session_header(response)
@@ -1274,9 +1198,9 @@ async def delete_session_data(
 
 
 async def _delete_session_data(delete_req: DeleteDataRequest):
-    """Deletes all data for a specific session.
-    Internal function.  Shared by both REST API and MCP API
-    See the docstring for delete_session_data() for details.
+    """删除特定会话的所有数据。
+    内部函数。由 REST API 和 MCP API 共享。
+    有关详细信息，请参阅 delete_session_data() 的文档字符串。
     """
     session = delete_req.get_session()
     inst: EpisodicMemory | None = await cast(
@@ -1301,7 +1225,7 @@ async def metrics():
 @app.get("/v1/sessions")
 async def get_all_sessions() -> AllSessionsResponse:
     """
-    Get all sessions
+    获取所有会话
     """
     sessions = cast(EpisodicMemoryManager, episodic_memory).get_all_sessions()
     return AllSessionsResponse(
@@ -1320,7 +1244,7 @@ async def get_all_sessions() -> AllSessionsResponse:
 @app.get("/v1/users/{user_id}/sessions")
 async def get_sessions_for_user(user_id: str) -> AllSessionsResponse:
     """
-    Get all sessions for a particular user
+    获取特定用户的所有会话
     """
     sessions = cast(EpisodicMemoryManager, episodic_memory).get_user_sessions(user_id)
     return AllSessionsResponse(
@@ -1339,7 +1263,7 @@ async def get_sessions_for_user(user_id: str) -> AllSessionsResponse:
 @app.get("/v1/groups/{group_id}/sessions")
 async def get_sessions_for_group(group_id: str) -> AllSessionsResponse:
     """
-    Get all sessions for a particular group
+    获取特定组的所有会话
     """
     sessions = cast(EpisodicMemoryManager, episodic_memory).get_group_sessions(group_id)
     return AllSessionsResponse(
@@ -1358,7 +1282,7 @@ async def get_sessions_for_group(group_id: str) -> AllSessionsResponse:
 @app.get("/v1/agents/{agent_id}/sessions")
 async def get_sessions_for_agent(agent_id: str) -> AllSessionsResponse:
     """
-    Get all sessions for a particular agent
+    获取特定代理的所有会话
     """
     sessions = cast(EpisodicMemoryManager, episodic_memory).get_agent_sessions(agent_id)
     return AllSessionsResponse(
@@ -1374,18 +1298,18 @@ async def get_sessions_for_agent(agent_id: str) -> AllSessionsResponse:
     )
 
 
-# === Health Check Endpoint ===
+# === 健康检查端点 ===
 @app.get("/health")
 async def health_check():
-    """Health check endpoint for container orchestration."""
+    """用于容器编排的健康检查端点。"""
     try:
-        # Check if memory managers are initialized
+        # 检查内存管理器是否已初始化
         if profile_memory is None or episodic_memory is None:
             raise HTTPException(
                 status_code=503, detail="Memory managers not initialized"
             )
 
-        # Basic health check - could be extended to check database connectivity
+        # 基本健康检查 - 可以扩展以检查数据库连接
         return {
             "status": "healthy",
             "service": "memmachine",
@@ -1400,7 +1324,7 @@ async def health_check():
 
 
 async def start():
-    """Runs the FastAPI application using uvicorn server."""
+    """使用 uvicorn 服务器运行 FastAPI 应用程序。"""
     port_num = os.getenv("PORT", "8080")
     host_name = os.getenv("HOST", "0.0.0.0")
 
@@ -1410,17 +1334,17 @@ async def start():
 
 
 def main():
-    """Main entry point for the application."""
+    """应用程序的主入口点。"""
     log_level = os.getenv("LOG_LEVEL", "INFO").upper()
     log_format = os.getenv("LOG_FORMAT", "%(levelname)-7s %(message)s")
     logging.basicConfig(
         level=log_level,
         format=log_format,
     )
-    # Load environment variables from .env file
+    # 从 .env 文件加载环境变量
     load_dotenv()
 
-    # Parse command line arguments
+    # 解析命令行参数
     parser = argparse.ArgumentParser(description="MemMachine server")
     parser.add_argument(
         "--stdio",
@@ -1430,24 +1354,24 @@ def main():
     args = parser.parse_args()
 
     if args.stdio:
-        # MCP stdio mode
+        # MCP stdio 模式
         config_file = os.getenv("MEMORY_CONFIG", "configuration.yml")
 
         async def run_mcp_server():
-            """Initialize resources and run MCP server in the same event loop."""
+            """初始化资源并在同一事件循环中运行 MCP 服务器。"""
             global episodic_memory, profile_memory
             try:
                 episodic_memory, profile_memory = await initialize_resource(config_file)
                 await profile_memory.startup()
                 await mcp.run_stdio_async()
             finally:
-                # Clean up resources when server stops
+                # 服务器停止时清理资源
                 if profile_memory:
                     await profile_memory.cleanup()
 
         asyncio.run(run_mcp_server())
     else:
-        # HTTP mode for REST API
+        # REST API 的 HTTP 模式
         asyncio.run(start())
 
 

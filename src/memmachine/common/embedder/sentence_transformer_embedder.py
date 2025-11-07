@@ -1,5 +1,5 @@
 """
-Sentence transformer-based embedder implementation.
+基于句子转换器的嵌入器实现。
 """
 
 import asyncio
@@ -21,37 +21,36 @@ logger = logging.getLogger(__name__)
 
 class SentenceTransformerEmbedderParams(BaseModel):
     """
-    Parameters for SentenceTransformerEmbedder.
+    SentenceTransformerEmbedder 的参数。
 
-    Attributes:
+    属性:
         model_name (str):
-            The name of the sentence transformer model.
+            句子转换器模型的名称。
         sentence_transformer (SentenceTransformer):
-            The sentence transformer model to use for generating embeddings.
+            用于生成嵌入的句子转换器模型。
     """
 
     model_name: str = Field(
-        ..., description="The name of the sentence transformer model."
+        ..., description="句子转换器模型的名称。"
     )
     sentence_transformer: InstanceOf[SentenceTransformer] = Field(
         ...,
-        description="The sentence transformer model to use for generating embeddings.",
+        description="用于生成嵌入的句子转换器模型。",
     )
 
 
 class SentenceTransformerEmbedder(Embedder):
     """
-    Embedder that uses a sentence transformer model
-    to generate embeddings for inputs and queries.
+    使用句子转换器模型为输入和查询生成嵌入的嵌入器。
     """
 
     def __init__(self, params: SentenceTransformerEmbedderParams):
         """
-        Initialize a SentenceTransformerEmbedder with the provided parameters.
+        使用提供的参数初始化 SentenceTransformerEmbedder。
 
-        Args:
+        参数:
             params (SentenceTransformerEmbedderParams):
-                Parameters for the SentenceTransformerEmbedder.
+                SentenceTransformerEmbedder 的参数。
         """
         super().__init__()
 
@@ -73,7 +72,7 @@ class SentenceTransformerEmbedder(Embedder):
                 self._similarity_metric = SimilarityMetric.MANHATTAN
             case _:
                 logger.warning(
-                    "Unknown similarity function name '%s', defaulting to cosine",
+                    "未知的相似度函数名称 '%s'，默认使用余弦相似度",
                     self._sentence_transformer.similarity_fn_name,
                 )
                 self._similarity_metric = SimilarityMetric.COSINE
@@ -110,7 +109,7 @@ class SentenceTransformerEmbedder(Embedder):
         try:
             logger.debug(
                 "[call uuid: %s] "
-                "Attempting to create embeddings using %s sentence transformer model",
+                "尝试使用 %s 句子转换器模型创建嵌入",
                 embed_call_uuid,
                 self._model_name,
             )
@@ -121,18 +120,17 @@ class SentenceTransformerEmbedder(Embedder):
                 show_progress_bar=False,
             )
         except Exception as e:
-            # Exception may not be retried.
+            # 异常可能无法重试。
             error_message = (
                 f"[call uuid: {embed_call_uuid}] "
-                "Giving up creating embeddings "
-                f"due to assumed non-retryable {type(e).__name__}"
+                f"由于假设为不可重试的 {type(e).__name__} 异常，放弃创建嵌入"
             )
             logger.error(error_message)
             raise ExternalServiceAPIError(error_message)
 
         end_time = time.monotonic()
         logger.debug(
-            "[call uuid: %s] Embeddings created in %.3f seconds",
+            "[call uuid: %s] 嵌入在 %.3f 秒内创建完成",
             embed_call_uuid,
             end_time - start_time,
         )

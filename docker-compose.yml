@@ -1,7 +1,7 @@
 services:
   # PostgreSQL with pgvector extension for profile memory storage
   postgres:
-    image: pgvector/pgvector:pg16
+    image: ccr.ccs.tencentyun.com/huyyxy/pgvector:pg16
     container_name: memmachine-postgres
     restart: unless-stopped
     ports:
@@ -14,7 +14,11 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-memmachine} -d ${POSTGRES_DB:-memmachine}"]
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-memmachine} -d ${POSTGRES_DB:-memmachine}",
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -24,13 +28,13 @@ services:
 
   # Neo4j database for graph storage
   neo4j:
-    image: neo4j:5.23-community
+    image: ccr.ccs.tencentyun.com/huyyxy/neo4j:5.23-community
     container_name: memmachine-neo4j
     restart: unless-stopped
     ports:
-      - "${NEO4J_HTTP_PORT:-7474}:7474"  # HTTP
-      - "${NEO4J_HTTPS_PORT:-7473}:7473"  # HTTPS
-      - "${NEO4J_PORT:-7687}:7687"  # Bolt
+      - "${NEO4J_HTTP_PORT:-7474}:7474" # HTTP
+      - "${NEO4J_HTTPS_PORT:-7473}:7473" # HTTPS
+      - "${NEO4J_PORT:-7687}:7687" # Bolt
     environment:
       NEO4J_EDITION: community
       NEO4J_AUTH: ${NEO4J_USER:-neo4j}/${NEO4J_PASSWORD:-neo4j_password}
@@ -48,7 +52,16 @@ services:
       - neo4j_import:/var/lib/neo4j/import
       - neo4j_plugins:/plugins
     healthcheck:
-      test: ["CMD", "cypher-shell", "-u", "${NEO4J_USER:-neo4j}", "-p", "${NEO4J_PASSWORD:-neo4j_password}", "RETURN 1"]
+      test:
+        [
+          "CMD",
+          "cypher-shell",
+          "-u",
+          "${NEO4J_USER:-neo4j}",
+          "-p",
+          "${NEO4J_PASSWORD:-neo4j_password}",
+          "RETURN 1",
+        ]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -58,7 +71,7 @@ services:
 
   # MemMachine application
   memmachine:
-    image: ${MEMMACHINE_IMAGE:-memmachine/memmachine}
+    image: ccr.ccs.tencentyun.com/huyyxy/memmachine:v0.1.9-cpu
     container_name: memmachine-app
     restart: unless-stopped
     ports:
@@ -82,7 +95,7 @@ services:
       MCP_BASE_URL: ${MCP_BASE_URL:-http://memmachine:8080}
       GATEWAY_URL: ${GATEWAY_URL:-http://localhost:8080}
       FAST_MCP_LOG_LEVEL: ${FAST_MCP_LOG_LEVEL:-INFO}
-      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
     volumes:
       - ./configuration.yml:/app/configuration.yml:ro,Z
@@ -93,7 +106,8 @@ services:
       neo4j:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "--fail", "--silent", "http://localhost:8080/health"]
+      test:
+        ["CMD", "curl", "--fail", "--silent", "http://localhost:8080/health"]
       interval: 30s
       timeout: 10s
       retries: 3

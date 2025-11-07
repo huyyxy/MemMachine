@@ -1,31 +1,30 @@
----
-title: "Episodic Memory" 
-description: "The `EpisodicMemory` module and class provides a dedicated, high-level interface for managing a single conversational memory session." 
+title: "Episodic Memory（情景记忆）" 
+description: "`EpisodicMemory` 模块和类为单一对话记忆会话提供专用的高级管理接口。" 
 icon: "memory"
 ---
 
-This module defines the core, isolated memory instance for one specific conversational context (like a single user's chat with an AI). Think of it as the brain dedicated to one conversation.
+该模块用于定义某一特定对话语境（例如单个用户与 AI 的一次对话）的核心独立记忆实例。可以把它理解为专门服务于某段对话的“记忆中枢”。
 
-The `EpisodicMemory` class acts as the primary orchestrator for this session. It cleverly integrates **short-term memory** (recent chat history) and **long-term memory** (declarative facts and older information) to give you a unified view.
+`EpisodicMemory` 类是这一会话的主要协调者。它将**短期记忆**（近期的对话历史）与**长期记忆**（陈述性事实与较早的信息）巧妙结合，提供统一视角。
 
-### Key Responsibilities:
+### 核心职责
 
-- **Unified Storage:** Adds new conversational **Episode** objects to both short-term (Session) and long-term (Declarative) memory simultaneously.
-- **Smart Retrieval:** Finds the most relevant context for any query by searching both memory types and handling duplicates.
-- **Context Generation:** Formats retrieved memories into a structured (XML-like) query for seamless integration with your Language Models.
-- **Lifecycle Management:** Uses reference counting to ensure the memory instance is only active when needed, saving resources.
+- **统一存储：** 将新的对话 **Episode** 对象同时写入短期（Session）与长期（Declarative）记忆。
+- **智能检索：** 在两类记忆中检索最相关的上下文，并去重处理。
+- **上下文生成：** 将检索到的记忆格式化成结构化（类 XML）的查询，便于无缝接入语言模型。
+- **生命周期管理：** 通过引用计数确保记忆实例仅在需要时保持激活，从而节省资源。
 
 <a id="memmachine.episodic_memory.EpisodicMemory"></a>
 
-## The EpisodicMemory Class
+## `EpisodicMemory` 类
 
 ```python
 class EpisodicMemory()
 ```
 
-Represents a single, isolated memory instance for a specific context.
+表示某一特定语境下的独立记忆实例。
 
-This class manages the interaction between short-term (session) memory and long-term (declarative) memory. Each instance is tied to a unique **`MemoryContext`** (defined by group, agent, user, and session IDs).
+该类负责协调短期（会话）记忆与长期（陈述性）记忆之间的交互。每个实例都绑定到唯一的 **`MemoryContext`**（由 group、agent、user、session ID 组合定义）。
 
 <a id="memmachine.episodic_memory.EpisodicMemory.init"></a>
 
@@ -35,13 +34,13 @@ This class manages the interaction between short-term (session) memory and long-
 def __init__(manager, config: dict, memory_context: MemoryContext)
 ```
 
-Initializes a new `EpisodicMemory` instance. This method handles all the setup, including configuring the internal short-term and long-term memory components based on your provided configuration dictionary.
+初始化新的 `EpisodicMemory` 实例。该方法负责所有准备工作，包括依据配置字典设置内部的短期与长期记忆组件。
 
-**Arguments**:
+**参数**：
 
-- `manager`: The `EpisodicMemoryManager` that created this instance.
-- `config`: A dictionary containing all necessary configurations (model, prompts, and memory settings) for this memory instance.
-- `memory_context`: The unique context that defines this memory session (who is talking to whom).
+- `manager`：创建该实例的 `EpisodicMemoryManager`。
+- `config`：包含该记忆实例所需全部配置（模型、提示词以及记忆设置）的字典。
+- `memory_context`：定义该记忆会话的唯一语境（参与对话的各方）。
 
 <a id="memmachine.episodic_memory.EpisodicMemory.reference"></a>
 
@@ -51,11 +50,11 @@ Initializes a new `EpisodicMemory` instance. This method handles all the setup, 
 async def reference() -> bool
 ```
 
-Increments the reference count for this memory instance. This is used internally by the manager to track how many clients are actively using the memory.
+为该记忆实例增加引用计数。管理器据此跟踪当前有多少客户端正在使用该记忆。
 
-**Returns**:
+**返回值**：
 
-`True` if the reference was successfully added, or `False` if the instance is already marked for closure.
+若引用添加成功则返回 `True`；如果实例已被标记为待关闭则返回 `False`。
 
 <a id="memmachine.episodic_memory.EpisodicMemory.add_memory_episode"></a>
 
@@ -71,21 +70,21 @@ async def add_memory_episode(producer: str,
                              metadata: dict | None = None) -> bool
 ```
 
-Adds a new memory episode to both the short-term (session) and long-term (declarative) memory stores concurrently. This ensures that new information is instantly available for context retrieval.
+同时向短期（会话）记忆与长期（陈述性）记忆写入新的记忆片段，确保新信息可立即用于上下文检索。
 
-**Arguments**:
+**参数**：
 
-- `producer`: The ID of the user or agent that created the episode (e.g., sent a message).
-- `produced_for`: The ID of the intended recipient.
-- `episode_content`: The content of the episode, which can be a raw text string or a pre-computed embedding vector (`list[float]`).
-- `episode_type`: The category of the episode (e.g., `'message'`, `'thought'`, `'summary'`).
-- `content_type`: Specifies the format of the `episode_content` (e.g., `ContentType.STRING` or `ContentType.VECTOR`).
-- `timestamp`: *Optional.* The timestamp of the episode. Defaults to the current time if not provided.
-- `metadata`: *Optional.* A dictionary for any custom, user-defined metadata you want to attach to the episode.
+- `producer`：创建该记忆片段的用户或智能体 ID（例如发送消息的一方）。
+- `produced_for`：目标接收方的 ID。
+- `episode_content`：记忆内容，可以是原始文本字符串，也可以是预先计算的嵌入向量（`list[float]`）。
+- `episode_type`：记忆片段的类别（例如 `'message'`、`'thought'`、`'summary'`）。
+- `content_type`：说明 `episode_content` 的格式（例如 `ContentType.STRING` 或 `ContentType.VECTOR`）。
+- `timestamp`：*可选。* 记忆的时间戳，默认使用当前时间。
+- `metadata`：*可选。* 附加的自定义元数据字典。
 
-**Returns**:
+**返回值**：
 
-`True` if the episode was added successfully. (Will raise a `ValueError` if the `producer` or `produced_for` IDs are not part of the defined `MemoryContext`).
+若写入成功则返回 `True`。若 `producer` 或 `produced_for` 不属于当前 `MemoryContext`，会抛出 `ValueError`。
 
 <a id="memmachine.episodic_memory.EpisodicMemory.query_memory"></a>
 
@@ -97,21 +96,21 @@ async def query_memory(query: str,
                        property_filter: dict | None = None) -> tuple[list[Episode], list[Episode], list[str]]
 ```
 
-The core search function. This method retrieves the most relevant contextual information for a given query from all memory stores (short-term and long-term).
+核心检索函数。从所有记忆存储（短期与长期）中获取与查询最相关的上下文信息。
 
-**Arguments**:
+**参数**：
 
-- `query`: The question or query string used to search for context.
-- `limit`: *Optional.* The maximum number of episodes to return from *each* memory type. Defaults to 20.
-- `property_filter`: *Optional.* A dictionary of properties (key-value pairs) to filter the search in declarative memory.
+- `query`：用于检索上下文的问题或查询字符串。
+- `limit`：*可选。* 每种记忆类型返回的最大 Episode 数，默认 20。
+- `property_filter`：*可选。* 在陈述性记忆中筛选属性的键值对字典。
 
-**Returns**:
+**返回值**：
 
-A tuple containing three elements:
+返回一个包含三部分的元组：
 
-1. A list of **`Episode`** objects found in short-term memory.
-2. A list of **`Episode`** objects found in long-term memory (already deduplicated).
-3. A list of summary strings generated from the short-term context.
+1. 短期记忆中找到的 **`Episode`** 列表。
+2. 长期记忆中去重后的 **`Episode`** 列表。
+3. 由短期上下文生成的摘要字符串列表。
 
 <a id="memmachine.episodic_memory.EpisodicMemory.formalize_query_with_context"></a>
 
@@ -123,19 +122,19 @@ async def formalize_query_with_context(query: str,
                                         property_filter: dict | None = None) -> str
 ```
 
-Constructs the final, complete query string to be sent to a Language Model.
+构建发送给语言模型的完整查询字符串。
 
-It calls `query_memory` to get the context, then formats the summary and episodes into a structured string (using `<Summary>`, `<Episodes>`, and `<Query>` tags) that is easy for the LLM to parse and reason over.
+该方法会先调用 `query_memory` 获取上下文，再将摘要与记忆片段格式化为结构化字符串（使用 `<Summary>`、`<Episodes>`、`<Query>` 标签），便于语言模型解析与推理。
 
-**Arguments**:
+**参数**：
 
-- `query`: The original query string.
-- `limit`: The maximum number of episodes to include in the context.
-- `property_filter`: Filters for the search.
+- `query`：原始查询字符串。
+- `limit`：上下文中包含的最大 Episode 数。
+- `property_filter`：用于检索时的筛选条件。
 
-**Returns**:
+**返回值**：
 
-A new query string enriched with context from memory, formatted for the LLM.
+包含记忆上下文的增强查询字符串，已为语言模型优化。
 
 <a id="memmachine.episodic_memory.EpisodicMemory.delete_data"></a>
 
@@ -145,7 +144,7 @@ A new query string enriched with context from memory, formatted for the LLM.
 async def delete_data()
 ```
 
-**CAUTION:** This is a destructive operation. It deletes all associated data from both short-term (session) and long-term (declarative) memory for this specific `MemoryContext`.
+**警告：** 该操作具有破坏性，会删除当前 `MemoryContext` 关联的所有短期（会话）与长期（陈述性）记忆数据。
 
 <a id="memmachine.episodic_memory.EpisodicMemory.close"></a>
 
@@ -155,7 +154,7 @@ async def delete_data()
 async def close()
 ```
 
-Decrements the internal reference count. If the count reaches zero, this method automatically closes the underlying memory stores, cleans up resources, and notifies the manager to remove the instance.
+减少内部引用计数。当计数降至零时，会自动关闭底层记忆存储、释放资源，并通知管理器移除该实例。
 
 ## Async Context Manager
 
@@ -165,16 +164,16 @@ Decrements the internal reference count. If the count reaches zero, this method 
 class AsyncEpisodicMemory
 ```
 
-This helper class allows you to manage the `EpisodicMemory` lifecycle using Python's asynchronous context manager (`async with`). This is the safest and cleanest way to ensure you call `reference()` and `close()` correctly.
+该辅助类允许通过 Python 的异步上下文管理器（`async with`）管理 `EpisodicMemory` 的生命周期，是确保正确调用 `reference()` 与 `close()` 的最佳方式。
 
 ```python
 from memmachine.episodic_memory import AsyncEpisodicMemory
-# Assuming you have an episodic_memory_instance from your manager...
+# 假设你已经从管理器中获取 episodic_memory_instance...
 
 async with AsyncEpisodicMemory(episodic_memory_instance) as memory:
-    # 'memory' is the EpisodicMemory instance. 
-    # reference() was called automatically when entering the block.
+    # 'memory' 即 EpisodicMemory 实例。
+    # 进入代码块时会自动调用 reference()。
     await memory.add_memory_episode(...)
     # ...
-# When exiting the 'async with' block, memory.close() is called automatically.
+# 退出 'async with' 代码块时将自动调用 memory.close()。
 ```

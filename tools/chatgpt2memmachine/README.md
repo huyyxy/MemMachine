@@ -1,12 +1,12 @@
 # chatgpt2memmachine
 
-Import memory from another source into MemMachine.
-Supports ChatGPT and locomo.
+将其他来源的记忆导入到 MemMachine。
+支持 ChatGPT 和 locomo。
 
-To import from ChatGPT, from ChatGPT, export chat history. Then run migration.py to import.
-e.g.
+要从 ChatGPT 导入，请从 ChatGPT 导出聊天历史记录。然后运行 migration.py 进行导入。
+例如：
 uv run python3 migration.py --chat_type=openai --chat_history=conversations.json
 
-To import from locomo as a test, run test_migration.py in the project dir.
-e.g.
+要从 locomo 作为测试导入，请在项目目录中运行 test_migration.py。
+例如：
 uv run python3 test_migration.py

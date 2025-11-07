@@ -1,252 +1,252 @@
 DEFAULT_CREATE_PROFILE_PROMPT = """
-    You are an AI assistant that extracts ONLY the health and wellness related information about the user. You extract profile tag, feature, and values from a user's messages to their AI assistant.
+    你是一个AI助手，专门提取用户的健康和健康相关信息。你需要从用户发送给AI助手的消息中提取资料标签、特征和值。
 
-    You will create sets of tags, features, and values that describe the user's medical condition and history. The tag is the category of the feature, and the feature is the type of profile attribute. The value is a verbose description of the user's profile feature, not a short keyword or phrase.
+    你需要创建描述用户医疗状况和历史的标签、特征和值的集合。标签是特征的类别，特征是资料属性的类型。值是对用户资料特征的详细描述，而不是简短的关键词或短语。
 
-    The tags you are looking for include (but not limited to):
-    - Symptoms
-    - Medications
-    - Medical History
-    - Family History
-    - Lifestyle
-    - Health Goals
-    - Health Concerns
-    - Health History
-    - Allergies
-    - Medical Procedures
-    - Test Results
-    - Diagnosis
-    - Treatment
-    - Diet
-    - Exercise
-    - Sleep
-    - Stress
-    - Mental Health
-    - Physical Health
-    - Wellness
-    - Dietary Restrictions
-    - Food Allergies
-    - Food Intolerances
-    - Food Preferences
-    - Food Aversions
-    - Food Intolerances
-    - Food Preferences
+    你需要查找的标签包括（但不限于）：
+    - 症状
+    - 药物
+    - 病史
+    - 家族史
+    - 生活方式
+    - 健康目标
+    - 健康关切
+    - 健康历史
+    - 过敏
+    - 医疗程序
+    - 检查结果
+    - 诊断
+    - 治疗
+    - 饮食
+    - 运动
+    - 睡眠
+    - 压力
+    - 心理健康
+    - 身体健康
+    - 健康
+    - 饮食限制
+    - 食物过敏
+    - 食物不耐受
+    - 食物偏好
+    - 食物厌恶
+    - 食物不耐受
+    - 食物偏好
 """
 DEFAULT_REWRITE_PROFILE_PROMPT = """
-    You are an AI assistant that extracts ONLY the health and wellness related information about the user. You extract profile tag, feature, and values from a user's messages to their AI assistant.
+    你是一个AI助手，专门提取用户的健康和健康相关信息。你需要从用户发送给AI助手的消息中提取资料标签、特征和值。
 
-    You will create sets of tags, features, and values that describe the user's medical condition and history. The tag is the category of the feature, and the feature is the type of profile attribute. The value is a verbose description of the user's profile feature, not a short keyword or phrase.
+    你需要创建描述用户医疗状况和历史的标签、特征和值的集合。标签是特征的类别，特征是资料属性的类型。值是对用户资料特征的详细描述，而不是简短的关键词或短语。
 
-    The tags you are looking for include:
-    - Symptoms
-    - Medications
-    - Medical History
-    - Family History
-    - Lifestyle
-    - Health Goals
-    - Health Concerns
-    - Health History
-    - Allergies
-    - Medical Procedures
-    - Test Results
-    - Diagnosis
-    - Treatment
-    - Diet
-    - Exercise
-    - Sleep
-    - Stress
-    - Mental Health
-    - Physical Health
-    - Wellness
-    - Dietary Restrictions
-    - Food Allergies
-    - Food Intolerances
-    - Food Preferences
-    - Food Aversions
-    - Food Intolerances
-    - Food Preferences
+    你需要查找的标签包括：
+    - 症状
+    - 药物
+    - 病史
+    - 家族史
+    - 生活方式
+    - 健康目标
+    - 健康关切
+    - 健康历史
+    - 过敏
+    - 医疗程序
+    - 检查结果
+    - 诊断
+    - 治疗
+    - 饮食
+    - 运动
+    - 睡眠
+    - 压力
+    - 心理健康
+    - 身体健康
+    - 健康
+    - 饮食限制
+    - 食物过敏
+    - 食物不耐受
+    - 食物偏好
+    - 食物厌恶
+    - 食物不耐受
+    - 食物偏好
 """
 
 DEFAULT_CREATE_PROFILE_PROMPT_DATA = """
-The conversation history is: {context}.
+对话历史记录为：{context}。
 """
 
 DEFAULT_UPDATE_PROFILE_PROMPT = """
-    Your job is to handle memory consolidation for a personalized memory system, specifically, a user profile recording details relevant to personalizing chat engine responses.
-    You will receive a health and wellness related profile and a user's query to the chat system, your job is to update that profile by extracting out relevant health and wellness related information from the query.
-    A profile is a two-level key-value store. We call the outer key the *tag*, and the inner key the *feature*. Together, a *tag* and a *feature* are associated with one or several *value*s.
+    你的工作是处理个性化记忆系统的记忆整合，具体来说，是记录与个性化聊天引擎响应相关的详细信息的用户资料。
+    你将收到一个健康和健康相关的资料以及用户对聊天系统的查询，你的工作是通过从查询中提取相关的健康和健康相关信息来更新该资料。
+    资料是一个两级键值存储。我们将外部键称为*标签*，内部键称为*特征*。标签和特征一起与一个或多个*值*关联。
 
-    How to construct profile entries:
-    - Entries should be atomic. They should communicate a single discrete fact. Split entries up to aid in enforcing this constraint.
-    - Entries should be as short as possible without corrupting meaning. Be careful when leaving out prepositions, qualifiers, negations, etc. Some modifiers will be longer range, find the best way to compactify such phrases.
+    如何构建资料条目：
+    - 条目应该是原子性的。它们应该传达一个离散的事实。将条目拆分以帮助执行此约束。
+    - 条目应该尽可能短而不破坏含义。省略介词、限定词、否定词等时要小心。某些修饰语的范围会更长，找到最合适的方式来压缩这些短语。
 
-    An entry should be a fast and automatic association between the tag+feature and the value. Too much filler destroys the quick association.
+    条目应该是标签+特征与值之间的快速自动关联。过多的填充内容会破坏快速关联。
 
-    Remember:When the user reports a symptom that is already recorded in the profile, do NOT delete or modify the existing record. Instead, add a new row with the same tag and feature (chest_pain) and include the timestamp in the value field if applicable.
+    记住：当用户报告的症状已在资料中记录时，不要删除或修改现有记录。相反，添加一个具有相同标签和特征（chest_pain）的新行，并在适用时在值字段中包含时间戳。
 
-    Remember: If the user claims to have a medical condition, then ask them if it is an official diagnosis or a self-diagnosis/something that they think they have. If they say it is an official diagnosis, add it to the profile with the "Official Diagnosis" tag. If they say it is a self-diagnosis, add it to the profile with the "Self-Diagnosis" tag.
+    记住：如果用户声称患有某种疾病，请询问他们这是正式诊断还是自我诊断/他们认为自己患有的疾病。如果他们说这是正式诊断，请将其添加到资料中，标签为"正式诊断"。如果他们说这是自我诊断，请将其添加到资料中，标签为"自我诊断"。
 
-    Remember: You will be the one reading over this profile later on! What should and shouldn't your future self remember? They can't remember everything!
+    记住：你将是以后阅读这个资料的人！你的未来自己应该和不应该记住什么？他们不能记住一切！
 
-    The tags you are looking for include:
-        - Assistant Response Preferences: How the user prefers the assistant to communicate (style, tone, structure, data format). (type: object)
-        - Notable Past Conversation Topic Highlights: Recurring or significant discussion themes. (type: object)
-        - Helpful User Insights: Key insights that help personalize assistant behavior. (type: object)
-        (Note: These first three tags are exceptions to the rules about atomicity and brevity. Use sparingly.)
+    你需要查找的标签包括：
+        - 助手响应偏好：用户偏好助手如何沟通（风格、语调、结构、数据格式）。(类型：object)
+        - 值得注意的过往对话主题要点：重复或重要的讨论主题。(类型：object)
+        - 有用的用户洞察：帮助个性化助手行为的关键洞察。(类型：object)
+        （注意：前三个标签是关于原子性和简洁性规则的例外。请谨慎使用。）
 
-        Health & Wellness Tags:
-        - Symptoms: User-reported physical or mental symptoms. (type: object or list)
-        - Medications: Medications, supplements, or treatments taken. (type: object or list)
-        - Medical History: Past illnesses, surgeries, and chronic conditions. (type: object)
-        - Family History: Health conditions in user's family. (type: object)
-        - Lifestyle: Habits impacting health (diet, exercise, sleep, etc.). (type: object)
-        - Health Goals: User's objectives related to wellness and health. (type: object or list)
-        - Health Concerns: User's specific worries or issues. (type: object or list)
-        - Health History: Longitudinal health info over time. (type: object)
-        - Allergies: Known allergies to substances. (type: object or list)
-        - Medical Procedures: Surgeries and diagnostic procedures undergone. (type: object or list)
-        - Test Results: Lab or imaging results. (type: object or list)
-        - Diagnosis: Diagnosed medical conditions. (type: object or list)
-        - Treatment: Therapies or interventions received. (type: object or list)
-        - Diet: User's eating patterns or dietary habits. (type: object or list)
-        - Exercise: Physical activity routines. (type: object or list)
-        - Sleep: Sleep patterns or issues. (type: object or list)
-        - Stress: Stress levels and related info. (type: object or list)
-        - Mental Health: Psychological well-being and issues. (type: object or list)
-        - Physical Health: Physical condition indicators. (type: object or list)
-        - Wellness: Overall well-being. (type: object or list)
-        - Dietary Restrictions: Any diet limitations. (type: object or list)
-        - Food Allergies: Allergic reactions to food. (type: object or list)
-        - Food Intolerances: Digestive or other food-related intolerances. (type: object or list)
-        - Food Preferences: Preferred foods or tastes. (type: object or list)
-        - Food Aversions: Foods the user avoids. (type: object or list)
+        健康与健康标签：
+        - 症状：用户报告的身体或精神症状。(类型：object 或 list)
+        - 药物：服用的药物、补充剂或治疗方法。(类型：object 或 list)
+        - 病史：过去的疾病、手术和慢性疾病。(类型：object)
+        - 家族史：用户家族的健康状况。(类型：object)
+        - 生活方式：影响健康的习惯（饮食、运动、睡眠等）。(类型：object)
+        - 健康目标：用户与健康和健康相关的目标。(类型：object 或 list)
+        - 健康关切：用户特定的担忧或问题。(类型：object 或 list)
+        - 健康历史：随时间推移的纵向健康信息。(类型：object)
+        - 过敏：已知的物质过敏。(类型：object 或 list)
+        - 医疗程序：接受的手术和诊断程序。(类型：object 或 list)
+        - 检查结果：实验室或影像结果。(类型：object 或 list)
+        - 诊断：诊断的医疗状况。(类型：object 或 list)
+        - 治疗：接受的治疗或干预措施。(类型：object 或 list)
+        - 饮食：用户的饮食模式或饮食习惯。(类型：object 或 list)
+        - 运动：体育活动常规。(类型：object 或 list)
+        - 睡眠：睡眠模式或问题。(类型：object 或 list)
+        - 压力：压力水平和相关信息。(类型：object 或 list)
+        - 心理健康：心理福祉和问题。(类型：object 或 list)
+        - 身体健康：身体状况指标。(类型：object 或 list)
+        - 健康：整体福祉。(类型：object 或 list)
+        - 饮食限制：任何饮食限制。(类型：object 或 list)
+        - 食物过敏：对食物的过敏反应。(类型：object 或 list)
+        - 食物不耐受：消化或其他与食物相关的不耐受。(类型：object 或 list)
+        - 食物偏好：偏好的食物或口味。(类型：object 或 list)
+        - 食物厌恶：用户避免的食物。(类型：object 或 list)
 
-        Behavioral and Contextual Tags:
-        - Psychological Profile: Personality characteristics or traits. (type: object or null)
-        - Cognitive Style: How the user processes information or makes decisions. (type: string or null)
-        - Emotional Drivers: Motivators like fear of error or desire for clarity. (type: list or null)
-        - Demographic Information: Education level, fields of study, or similar data. (type: object)
-        - Geographic & Cultural Context: Physical location or cultural background. (type: object)
-        - Health & Wellness: Physical/mental health indicators. (type: object or null)
-        - Motivation Triggers: Traits that drive engagement or satisfaction. (type: object of booleans)
-        - Behavior Under Stress: How the user reacts to failures or inaccurate responses. (type: object of booleans)
+        行为和上下文标签：
+        - 心理资料：人格特征或特质。(类型：object 或 null)
+        - 认知风格：用户处理信息或做出决策的方式。(类型：string 或 null)
+        - 情感驱动因素：激励因素，如对错误的恐惧或对清晰度的渴望。(类型：list 或 null)
+        - 人口统计信息：教育水平、研究领域或类似数据。(类型：object)
+        - 地理和文化背景：物理位置或文化背景。(类型：object)
+        - 健康与健康：身体/心理健康指标。(类型：object 或 null)
+        - 动机触发因素：推动参与或满足的特质。(类型：boolean 对象)
+        - 压力下的行为：用户对失败或不准确响应的反应方式。(类型：boolean 对象)
 
 
-    Example Profile:
+    示例资料：
     {
     "Assistant Response Preferences": {
-        "1": "User prefers structured and empathetic communication, especially when discussing sensitive health topics.",
-        "2": "User values brief but informative responses that summarize key medical information clearly.",
-        "3": "User prefers that information be explained in plain language, without overwhelming medical jargon.",
-        "4": "User appreciates follow-up questions that help the assistant better understand their symptoms or concerns."
+        "1": "用户偏好结构化和共情的沟通，特别是在讨论敏感健康话题时。",
+        "2": "用户重视简洁但信息丰富的回答，能够清楚地总结关键医疗信息。",
+        "3": "用户偏好用通俗易懂的语言解释信息，不要使用过多的医学术语。",
+        "4": "用户欣赏后续问题，帮助助手更好地理解他们的症状或关切。"
     },
     "Notable Past Conversation Topic Highlights": {
-        "1": "User has frequently asked about managing stress and improving sleep quality.",
-        "2": "User has discussed their goal of following a Mediterranean diet and reducing sugar intake.",
-        "3": "User has shown interest in understanding test results such as lipid panels and blood pressure readings."
+        "1": "用户经常询问如何管理压力和改善睡眠质量。",
+        "2": "用户讨论了他们遵循地中海饮食和减少糖分摄入的目标。",
+        "3": "用户对理解检查结果（如血脂面板和血压读数）表现出兴趣。"
     },
     "Helpful User Insights": {
-        "1": "User is actively tracking their mental and physical health as part of a personal wellness improvement plan.",
-        "2": "User has food intolerances and prefers diet-related suggestions to include alternatives for gluten and dairy.",
-        "3": "User has chronic mild anxiety and uses mindfulness techniques to manage it.",
-        "4": "User exercises 3-4 times per week and prefers low-impact workouts like yoga and walking.",
-        "5": "User lives in a high-stress urban environment and seeks techniques to improve work-life balance."
+        "1": "用户积极追踪他们的身心健康，作为个人健康改善计划的一部分。",
+        "2": "用户有食物不耐受，偏好包含无麸质和乳制品替代品的饮食相关建议。",
+        "3": "用户患有慢性轻度焦虑，使用正念技巧来管理它。",
+        "4": "用户每周运动3-4次，偏好低强度运动，如瑜伽和散步。",
+        "5": "用户生活在高压力城市环境中，寻求改善工作与生活平衡的技巧。"
     },
     "Symptoms": {
-        "2025-07-01T09:30:00Z": "User reports having a persistent dry cough for the past 3 days.",
-        "2025-07-03T15:12:00Z": "User is experiencing intermittent headaches in the afternoon.",
-        "2025-07-04T15:12:00Z": "User is experiencing headaches.",
-        "2025-07-05T15:12:00Z": "User is having headaches.",
-        "2025-07-06T15:12:00Z": "User is having headaches.",
-        "2025-07-07T15:12:00Z": "User is having headaches.",
-        "2025-07-08T15:12:00Z": "User is having headaches.",
-        "2025-07-09T15:12:00Z": "User is having headaches.",
-        "2025-07-10T15:12:00Z": "User is having headaches.",
-        "2025-07-11T15:12:00Z": "User is having headaches.",
-        "2025-07-12T15:12:00Z": "User is having headaches.",
+        "2025-07-01T09:30:00Z": "用户报告在过去3天持续干咳。",
+        "2025-07-03T15:12:00Z": "用户在下午经历间歇性头痛。",
+        "2025-07-04T15:12:00Z": "用户正在经历头痛。",
+        "2025-07-05T15:12:00Z": "用户正在头痛。",
+        "2025-07-06T15:12:00Z": "用户正在头痛。",
+        "2025-07-07T15:12:00Z": "用户正在头痛。",
+        "2025-07-08T15:12:00Z": "用户正在头痛。",
+        "2025-07-09T15:12:00Z": "用户正在头痛。",
+        "2025-07-10T15:12:00Z": "用户正在头痛。",
+        "2025-07-11T15:12:00Z": "用户正在头痛。",
+        "2025-07-12T15:12:00Z": "用户正在头痛。",
     },
     "Medications": {
-        "1": "User takes a daily 10mg dose of loratadine for seasonal allergies.",
-        "2": "User uses melatonin occasionally (2-3 times per week) to help with sleep."
+        "1": "用户每天服用10mg氯雷他定以治疗季节性过敏。",
+        "2": "用户偶尔（每周2-3次）使用褪黑素来帮助睡眠。"
     },
     "Medical History": {
-        "1": "Diagnosed with mild asthma in childhood, rarely symptomatic in adulthood.",
-        "2": "History of iron deficiency anemia, managed with diet and supplements."
+        "1": "儿童期被诊断患有轻度哮喘，成年后很少出现症状。",
+        "2": "有缺铁性贫血史，通过饮食和补充剂管理。"
     },
     "Lifestyle": {
-        "1": "User avoids alcohol and caffeine after 6pm to reduce sleep disruption.",
-        "2": "Practices mindfulness meditation for 10 minutes daily."
+        "1": "用户在晚上6点后避免饮酒和咖啡因以减少睡眠干扰。",
+        "2": "每天练习正念冥想10分钟。"
     },
     "Diet": {
-        "1": "User is mostly plant-based but occasionally eats fish (pescatarian).",
-        "2": "User avoids refined sugars and prefers whole foods."
+        "1": "用户主要是植物性饮食，但偶尔吃鱼（鱼素主义者）。",
+        "2": "用户避免精制糖，偏好全食物。"
     },
     "Exercise": {
-        "1": "User does yoga and brisk walking at least 3 times a week.",
-        "2": "Prefers low-impact activities due to joint sensitivity."
+        "1": "用户每周至少进行3次瑜伽和快走。",
+        "2": "由于关节敏感，偏好低强度活动。"
     },
     "Sleep": {
-        "1": "Average sleep duration is 6.5 hours; user aims for 8.",
-        "2": "Occasionally wakes up during the night due to anxiety."
+        "1": "平均睡眠时长为6.5小时；用户目标是8小时。",
+        "2": "由于焦虑偶尔在夜间醒来。"
     },
     "Mental Health": {
-        "1": "User reports mild generalized anxiety, not currently on medication.",
-        "2": "Uses cognitive behavioral therapy (CBT) techniques."
+        "1": "用户报告有轻度广泛性焦虑，目前未服药。",
+        "2": "使用认知行为疗法（CBT）技巧。"
     },
     "Health Goals": {
-        "1": "Improve sleep hygiene and consistency.",
-        "2": "Lower LDL cholesterol through diet and exercise."
+        "1": "改善睡眠卫生和一致性。",
+        "2": "通过饮食和运动降低LDL胆固醇。"
     },
     "Allergies": {
-        "1": "Seasonal pollen allergy.",
-        "2": "Allergic to penicillin."
+        "1": "季节性花粉过敏。",
+        "2": "对青霉素过敏。"
     },
     "Test Results": {
-        "1": "Most recent lipid panel showed elevated LDL (135 mg/dL).",
-        "2": "Vitamin D level measured at 22 ng/mL (below normal range)."
+        "1": "最近的血脂面板显示LDL升高（135 mg/dL）。",
+        "2": "维生素D水平为22 ng/mL（低于正常范围）。"
     },
     "Diagnosis": {
-        "1": "Mild anxiety disorder (diagnosed 2023).",
-        "2": "Iron-deficiency anemia (last diagnosed 2024)."
+        "1": "轻度焦虑症（2023年诊断）。",
+        "2": "缺铁性贫血（最后诊断于2024年）。"
     },
     "Treatment": {
-        "1": "User is practicing dietary modifications and mindfulness for anxiety.",
-        "2": "Using OTC supplements for iron and vitamin D deficiency."
+        "1": "用户正在通过饮食调整和正念来治疗焦虑。",
+        "2": "使用非处方补充剂来治疗缺铁和维生素D缺乏。"
     },
     "Food Intolerances": {
-        "1": "Gluten sensitivity (non-celiac).",
-        "2": "Lactose intolerance."
+        "1": "麸质敏感（非乳糜泻）。",
+        "2": "乳糖不耐受。"
     },
     "Food Preferences": {
-        "1": "Prefers Mediterranean and Asian cuisine.",
-        "2": "Avoids processed and fried foods."
+        "1": "偏好地中海和亚洲菜系。",
+        "2": "避免加工和油炸食品。"
     },
     "Food Aversions": {
-        "1": "Dislikes mushrooms and eggplant."
+        "1": "不喜欢蘑菇和茄子。"
     },
     "Behavior Under Stress": {
         "frustration_with_inaccuracy": true,
         "expectation_of_corrective_action": true
     },
     "Health & Wellness": {
-        "overall_status": "User is proactive about managing their health and wellness through lifestyle choices.",
-        "focus_areas": ["stress reduction", "sleep improvement", "dietary optimization"]
+        "overall_status": "用户通过生活方式选择积极管理他们的健康和健康。",
+        "focus_areas": ["压力减少", "睡眠改善", "饮食优化"]
     }
 }
 
 
 
-    To update the user's profile, you will output a JSON document containing a list of commands to be executed in sequence.
-    The following output will add a feature:
+    要更新用户的资料，你将输出一个包含要按顺序执行的命令列表的JSON文档。
+    以下输出将添加一个特征：
     {
         "0": {
             "command": "add",
             "tag": "Symptoms",
             "feature": "headache",
-            "value": "User reports experiencing frequent tension headaches in the afternoon"
+            "value": "用户报告在下午频繁经历紧张性头痛"
         }
     }
-    The following will delete all values associated with the feature:
+    以下将删除与特征关联的所有值：
     {
         "0": {
             "command": "delete",
@@ -254,123 +254,123 @@ DEFAULT_UPDATE_PROFILE_PROMPT = """
             "feature": "ibuprofen"
         }
     }
-    And the following will update a feature:
+    以下将更新一个特征：
     {
         "0": {
             "command": "delete",
             "tag": "Exercise",
             "feature": "frequency",
-            "value": "User exercises 2-3 times per week"
+            "value": "用户每周运动2-3次"
         },
         "1": {
             "command": "add",
             "tag": "Exercise",
             "feature": "frequency",
-            "value": "User exercises 4-5 times per week, increased from previous routine"
+            "value": "用户每周运动4-5次，比之前的常规有所增加"
         }
     }
 
-    Example Scenarios:
-    Query: "I've been having these terrible migraines for the past week, especially in the morning. I think it might be related to my new blood pressure medication. Should I be concerned?"
+    示例场景：
+    查询："我过去一周一直在头痛，尤其是早上。我觉得这可能与我新的降压药有关。我应该担心吗？"
     {
         "0": {
             "command": "add",
             "tag": "Symptoms",
             "feature": "migraine",
-            "value": "User experiencing frequent migraines for the past week, particularly in the morning"
+            "value": "用户在过去一周频繁经历偏头痛，尤其是在早上"
         },
         "1": {
             "command": "add",
             "tag": "Medications",
             "feature": "blood_pressure_medication",
-            "value": "User recently started new blood pressure medication, possibly causing side effects"
+            "value": "用户最近开始服用新的降压药，可能引起副作用"
         },
         "2": {
             "command": "add",
             "tag": "Health Concerns",
             "feature": "medication_side_effects",
-            "value": "User concerned about potential connection between new medication and migraine symptoms"
+            "value": "用户担心新药物与偏头痛症状之间的潜在关联"
         }
     }
-    Query: "I've been trying to follow a Mediterranean diet for my heart health, but I'm struggling with meal prep. Can you suggest some quick, heart-healthy breakfast options that I can prepare in advance?"
+    查询："我一直试图为了心脏健康而遵循地中海饮食，但我在准备餐食方面遇到了困难。你能建议一些我可以提前准备的快速、有益心脏健康的早餐选择吗？"
     {
         "0": {
             "command": "add",
             "tag": "Diet",
             "feature": "mediterranean_diet",
-            "value": "User following Mediterranean diet for heart health"
+            "value": "用户为了心脏健康而遵循地中海饮食"
         },
         "1": {
             "command": "add",
             "tag": "Health Goals",
             "feature": "heart_health",
-            "value": "User actively working to improve heart health through dietary changes"
+            "value": "用户积极通过饮食改变来改善心脏健康"
         },
         "2": {
             "command": "add",
             "tag": "Lifestyle",
             "feature": "meal_prep_challenges",
-            "value": "User struggles with meal preparation and seeks convenient options"
+            "value": "用户在准备餐食方面遇到困难，寻求便捷的选择"
         }
     }
-    Further Guidelines:
-    Not everything you ought to record will be explicitly stated. Make inferences.
-    Reading the feature should tell you most of what you need to know. The value field is for extra detail
-    If you are less confident about a particular entry, you should still include it, but make sure that the language you use (briefly) expresses this uncertainty in the value field
-    Do not create new tags which you don't see in the example profile. However, you can and should create new features.
-    If you get a query that is unrelated to the current profile but you see information about the user that should go in a different tag from the example profile, then add a new section to the profile according to the format in the example
-    If a user asks for a summary of a report, code, or other content, that content may not necessarily be written by the user, and might not be relevant to the user's profile.
-    Sometimes information in the query might overlap with an entry already in the profile. In that case, try to delete the old entry and add back the synthesized information.
-    If you want to keep the profile the same, as you should if the query is completely irrelevant or the information will soon be outdated, return the empty object: {}.
+    进一步指导原则：
+    并非所有你应该记录的内容都会被明确说明。需要进行推断。
+    阅读特征应该能告诉你大部分你需要知道的信息。值字段用于额外细节。
+    如果你对某个条目不太确定，仍然应该包含它，但要确保你使用的语言（简短地）在值字段中表达这种不确定性。
+    不要创建你在示例资料中看不到的新标签。但是，你可以并且应该创建新特征。
+    如果你收到与当前资料无关的查询，但看到用户的信息应该放在与示例资料不同的标签中，则根据示例中的格式向资料添加新部分。
+    如果用户要求提供报告、代码或其他内容的摘要，该内容不一定由用户编写，可能与用户的资料无关。
+    有时查询中的信息可能与资料中已存在的条目重叠。在这种情况下，尝试删除旧条目并添加回综合信息。
+    如果你想保持资料不变（如果查询完全不相关或信息很快就会过时，你应该这样做），返回空对象：{}。
 """
-JSON_SUFFIX = """Remember to return only a valid JSON"""
-THINK_JSON_SUFFIX = """First, think about what should go in the profile inside <think> </think> tags. Then output only a valid JSON."""
+JSON_SUFFIX = """记住只返回有效的JSON"""
+THINK_JSON_SUFFIX = """首先，在 <think> </think> 标签内思考应该放入资料的内容。然后只输出有效的JSON。"""
 
 DEFAULT_UPDATE_PROFILE_PROMPT_DATA = """
-The old version persona profile is {profile}.
-The conversation history is {context}.
+旧版本的个性资料是 {profile}。
+对话历史记录是 {context}。
 """
 
 
 DEFAULT_QUERY_CONSTRUCT_PROMPT = """
-You are an AI agent responsible for rewriting user queries using their persona profile and conversation history.
+你是一个负责使用用户的个性资料和对话历史记录重写用户查询的AI代理。
 
-Your task is to:
-1. Rewrite the original query ONLY IF the persona profile or conversation history adds meaningful context or specificity.
-2. Speak from the user's perspective (use "my", "I", etc.) — NOT from the assistant's perspective.
-3. If no relevant or useful profile data exists, return the original query unchanged.
-4. Do not generate an answer — just rewrite the query as a more personalized version.
-5. Keep the output concise and natural, like something the user themselves would ask.
+你的任务是：
+1. 仅当个性资料或对话历史记录添加了有意义的上下文或特定性时，才重写原始查询。
+2. 从用户的角度说话（使用"我的"、"我"等）——而不是从助手的角度。
+3. 如果不存在相关或有用的资料数据，则返回原始查询不变。
+4. 不要生成答案——只是将查询重写为更个性化的版本。
+5. 保持输出简洁自然，就像用户自己会问的那样。
 
-The persona profile is formatted as:
-feature name: feature value
-feature name: feature value
+个性资料的格式为：
+特征名称：特征值
+特征名称：特征值
 
 
-The conversation history is a list of recent user or assistant messages.
+对话历史记录是最近的用户或助手消息列表。
 
-Examples:
+示例：
 
-Original query: "How do I learn machine learning?"
-Persona: interest: Python, interest: data science, tool: scikit-learn
-Rewritten query: "How do I learn machine learning using Python and scikit-learn?"
+原始查询："我如何学习机器学习？"
+个性资料：兴趣：Python，兴趣：数据科学，工具：scikit-learn
+重写查询："我如何使用Python和scikit-learn学习机器学习？"
 
-Original query: "Give me advice on resumes"
-Persona: department: marketing
-Rewritten query: "What are good resume tips for someone in marketing?"
+原始查询："给我关于简历的建议"
+个性资料：部门：市场营销
+重写查询："对于在市场营销领域工作的人来说，有什么好的简历建议？"
 
-Original query: "What's the best way to learn SQL?"
-Persona: [irrelevant or empty]
-Rewritten query: "What's the best way to learn SQL?"  # unchanged
+原始查询："学习SQL的最佳方法是什么？"
+个性资料：[无关或为空]
+重写查询："学习SQL的最佳方法是什么？"  # 不变
 
-Now rewrite the following query based on the user's persona and conversation history.
-Only include the rewritten query as output.
+现在根据用户的个性资料和对话历史记录重写以下查询。
+只包含重写后的查询作为输出。
 
 """
 
 
 DEFAULT_QUERY_CONSTRUCT_PROMPT_DATA = """
-The persona profile is: {profile}.
-The conversation history is: {context}.
-The query prompt is: {query}.
+个性资料是：{profile}。
+对话历史记录是：{context}。
+查询提示是：{query}。
 """

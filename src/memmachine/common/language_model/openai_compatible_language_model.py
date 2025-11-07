@@ -1,5 +1,5 @@
 """
-OpenAI-completions API based language model implementation.
+基于 OpenAI-completions API 的语言模型实现。
 """
 
 import asyncio
@@ -22,37 +22,35 @@ logger = logging.getLogger(__name__)
 
 class OpenAICompatibleLanguageModel(LanguageModel):
     """
-    Language model that uses OpenAI's completions API
-    to generate responses based on prompts and tools.
+    使用 OpenAI 的 completions API
+    基于提示词和工具生成响应的语言模型。
     """
 
     def __init__(self, config: dict[str, Any]):
         """
-        Initialize an OpenAICompatibleLanguageModel
-        with the provided configuration.
+        使用提供的配置初始化 OpenAICompatibleLanguageModel。
 
         Args:
             config (dict[str, Any]):
-                Configuration dictionary containing:
+                配置字典，包含：
                 - api_key (str):
-                  API key for accessing the OpenAI service.
+                  用于访问 OpenAI 服务的 API 密钥。
                 - model (str):
-                  Name of the OpenAI model to use
+                  要使用的 OpenAI 模型名称
                 - metrics_factory (MetricsFactory, optional):
-                  An instance of MetricsFactory
-                  for collecting usage metrics.
+                  用于收集使用指标的 MetricsFactory 实例。
                 - user_metrics_labels (dict[str, str], optional):
-                  Labels to attach to the collected metrics.
-                - base_url: The base URL of the model
+                  要附加到收集的指标上的标签。
+                - base_url: 模型的基础 URL
                 - max_retry_interval_seconds (int, optional):
-                  Maximal retry interval in seconds when retrying API calls.
-                  The default value is 120 seconds.
+                  重试 API 调用时的最大重试间隔（秒）。
+                  默认值为 120 秒。
 
         Raises:
             ValueError:
-                If configuration argument values are missing or invalid.
+                如果配置参数值缺失或无效。
             TypeError:
-                If configuration argument values are of incorrect type.
+                如果配置参数值的类型不正确。
         """
         super().__init__()
 
@@ -156,7 +154,7 @@ class OpenAICompatibleLanguageModel(LanguageModel):
                 openai.APITimeoutError,
                 openai.APIConnectionError,
             ) as e:
-                # Exception may be retried.
+                # 异常可以重试。
                 if attempt >= max_attempts:
                     error_message = (
                         f"[call uuid: {generate_response_call_uuid}] "

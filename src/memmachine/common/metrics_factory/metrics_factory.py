@@ -1,8 +1,8 @@
 """
-Abstract base classes for a metrics factory and its metrics.
+指标工厂及其指标的抽象基类。
 
-Defines the interface for creating and managing different types
-of metrics such as counters, gauges, histograms, and summaries.
+定义了创建和管理不同类型指标的接口，
+例如计数器、仪表盘、直方图和摘要。
 """
 
 from abc import ABC, abstractmethod
@@ -11,87 +11,82 @@ from collections.abc import Iterable
 
 class MetricsFactory(ABC):
     """
-    Abstract base class for a metrics factory.
+    指标工厂的抽象基类。
     """
 
     class Counter(ABC):
         """
-        Abstract base class for a counter metric.
+        计数器指标的抽象基类。
         """
 
         @abstractmethod
         def increment(self, value: float = 1, labels: dict[str, str] = {}):
             """
-            Increment the counter by a specified value.
+            按指定值增加计数器。
 
             Args:
                 value (float, optional):
-                    The amount to increment
-                    the counter by (default: 1).
+                    增加计数器的数值（默认值: 1）。
                 labels (dict[str, str], optional):
-                    Label name-value pairs
-                    to associate with the increment.
-                    If empty, no labels are used.
+                    与增加操作关联的标签名值对。
+                    如果为空，则不使用标签。
             """
             raise NotImplementedError
 
     class Gauge(ABC):
         """
-        Abstract base class for a gauge metric.
+        仪表盘指标的抽象基类。
         """
 
         @abstractmethod
         def set(self, value: float, labels: dict[str, str] = {}):
             """
-            Set the gauge to a specified value.
+            将仪表盘设置为指定值。
 
             Args:
                 value (float):
-                    The value to set the gauge to.
+                    要设置的仪表盘值。
                 labels (dict[str, str], optional):
-                    Label name-value pairs
-                    to associate with the setting.
-                    If empty, no labels are used.
+                    与设置操作关联的标签名值对。
+                    如果为空，则不使用标签。
             """
             raise NotImplementedError
 
     class Histogram(ABC):
         """
-        Abstract base class for a histogram metric.
+        直方图指标的抽象基类。
         """
 
         @abstractmethod
         def observe(self, value: float, labels: dict[str, str] = {}):
             """
-            Observe a value and record it in the histogram.
+            观察一个值并将其记录到直方图中。
 
             Args:
                 value (float):
-                    The value to observe.
+                    要观察的值。
                 labels (dict[str, str], optional):
-                    Label name-value pairs
-                    to associate with the observation.
-                    If empty, no labels are used.
+                    与观察操作关联的标签名值对。
+                    如果为空，则不使用标签。
             """
             raise NotImplementedError
 
     class Summary(ABC):
         """
-        Abstract base class for a summary metric.
+        摘要指标的抽象基类。
         """
 
         @abstractmethod
         def observe(self, value: float, labels: dict[str, str] = {}):
             """
-            Observe a value and record it in the summary.
+            观察一个值并将其记录到摘要中。
 
             Args:
                 value (float):
-                    The value to observe.
+                    要观察的值。
                 labels (dict[str, str], optional):
-                    Label name-value pairs
-                    to associate with the observation.
-                    If empty, no labels are used.
+                    与观察操作关联的标签名值对。
+                    如果为空，则不使用标签。
             """
             raise NotImplementedError
 
@@ -103,20 +98,20 @@ class MetricsFactory(ABC):
         label_names: Iterable[str] = (),
     ) -> Counter:
         """
-        Get a counter metric by name, creating it if it doesn't exist.
+        通过名称获取计数器指标，如果不存在则创建它。
 
         Args:
             name (str):
-                The name of the counter metric.
+                计数器指标的名称。
             description (str):
-                A brief description of the counter metric.
+                计数器指标的简要描述。
             label_names (Iterable[str], optional):
-                An iterable of label names for the counter.
-                If empty, the counter will have no labels.
+                计数器的标签名称的可迭代对象。
+                如果为空，计数器将没有标签。
 
         Returns:
             Counter:
-                An instance of the Counter metric.
+                计数器指标的实例。
         """
         raise NotImplementedError
 
@@ -128,20 +123,20 @@ class MetricsFactory(ABC):
         label_names: Iterable[str] = (),
     ) -> Gauge:
         """
-        Get a gauge metric by name, creating it if it doesn't exist.
+        通过名称获取仪表盘指标，如果不存在则创建它。
 
         Args:
             name (str):
-                The name of the gauge metric.
+                仪表盘指标的名称。
             description (str):
-                A brief description of the gauge metric.
+                仪表盘指标的简要描述。
             label_names (Iterable[str], optional):
-                An iterable of label names for the gauge.
-                If empty, the gauge will have no labels.
+                仪表盘的标签名称的可迭代对象。
+                如果为空，仪表盘将没有标签。
 
         Returns:
             Gauge:
-                An instance of the Gauge metric.
+                仪表盘指标的实例。
         """
         raise NotImplementedError
 
@@ -153,20 +148,20 @@ class MetricsFactory(ABC):
         label_names: Iterable[str] = (),
     ) -> Histogram:
         """
-        Get a histogram metric by name, creating it if it doesn't exist.
+        通过名称获取直方图指标，如果不存在则创建它。
 
         Args:
             name (str):
-                The name of the histogram metric.
+                直方图指标的名称。
             description (str):
-                A brief description of the histogram metric.
+                直方图指标的简要描述。
             label_names (Iterable[str], optional):
-                An iterable of label names for the histogram.
-                If empty, the histogram will have no labels.
+                直方图的标签名称的可迭代对象。
+                如果为空，直方图将没有标签。
 
         Returns:
             Histogram:
-                An instance of the Histogram metric.
+                直方图指标的实例。
         """
         raise NotImplementedError
 
@@ -178,19 +173,19 @@ class MetricsFactory(ABC):
         label_names: Iterable[str] = (),
     ) -> Summary:
         """
-        Get a summary metric by name, creating it if it doesn't exist.
+        通过名称获取摘要指标，如果不存在则创建它。
 
         Args:
             name (str):
-                The name of the summary metric.
+                摘要指标的名称。
             description (str):
-                A brief description of the summary metric.
+                摘要指标的简要描述。
             label_names (Iterable[str], optional):
-                An iterable of label names for the summary.
-                If empty, the summary will have no labels.
+                摘要的标签名称的可迭代对象。
+                如果为空，摘要将没有标签。
 
         Returns:
             Summary:
-                An instance of the Summary metric.
+                摘要指标的实例。
         """
         raise NotImplementedError

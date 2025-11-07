@@ -1,58 +1,58 @@
-# Benchmark Evaluations: A Guide to Testing Your MemMachine
+# 基准评估：测试您的 MemMachine 指南
 
-Welcome to the MemMachine evaluation toolsets! We've created a simple tool to help you measure the performance, response quality of your MemMachine instance, and generate a LoCoMo score for your system.
+欢迎使用 MemMachine 评估工具集！我们创建了一个简单的工具，帮助您测量 MemMachine 实例的性能、响应质量，并为您的系统生成 LoCoMo 分数。
 
-**Episodic Memory Tool Set:** This tool measures how fast and accurately MemMachine performs core episodic memory tasks. For a list of specific commands, check out the [Episodic Memory Tool Set](./locomo/episodic_memory/README.md).
+**情景记忆工具集：** 该工具测量 MemMachine 执行核心情景记忆任务的速度和准确性。有关具体命令列表，请查看 [情景记忆工具集](./locomo/episodic_memory/README.md)。
 
 
-## Getting Started
+## 开始使用
 
-Before you run any benchmarks, you'll need to set up your environment.
+在运行任何基准测试之前，您需要设置环境。
 
-**General Prerequisites:**
+**通用先决条件：**
 
-- **MemMachine Backend:** Both tools require that your MemMachine backend be installed and configured. If you need help with this, you can check out our [QuickStart Guide](http://docs.memmachine.ai/getting_started/quickstart).
+- **MemMachine 后端：** 所有工具都需要安装并配置 MemMachine 后端。如果您需要帮助，可以查看我们的 [快速入门指南](http://docs.memmachine.ai/getting_started/quickstart)。
 
-- **Start the Backend:** Once everything is set up, start MemMachine with this command:
+- **启动后端：** 一切设置完成后，使用以下命令启动 MemMachine：
 
   ```sh
   memmachine-server
   ```
 
-**Tool-Specific Prerequisites:**
+**工具特定先决条件：**
 
-- Please ensure your `cfg.yml` file has been copied into your `locomo` directory (`/memmachine/evaluation/locomo/`) and renamed to `locomo_config.yaml`.
+- 请确保您的 `cfg.yml` 文件已复制到 `locomo` 目录（`/memmachine/evaluation/locomo/`）并重命名为 `locomo_config.yaml`。
 
 
-## Running the Benchmark
+## 运行基准测试
 
-Ready to go? Follow these simple steps:
+准备好了吗？按照以下简单步骤操作：
 
-**A.** All commands should be run from their respective tool directory (default `locomo/episodic_memory/`).
+**A.** 所有命令都应从其相应的工具目录运行（默认为 `locomo/episodic_memory/`）。
 
-**B.** The path to your data file, `locomo10.json`, should be updated to match its location. By default, you can find it in `/memmachine/evaluation/locomo/`.
+**B.** 您的数据文件 `locomo10.json` 的路径应更新以匹配其位置。默认情况下，您可以在 `/memmachine/evaluation/locomo/` 中找到它。
 
-**C.** Once you have performed step 1 below, you can repeat the benchmark run by performing steps 2-4.  Once are you finished performing the benchmark, run step 5.
+**C.** 完成下面的步骤 1 后，您可以通过执行步骤 2-4 重复运行基准测试。完成基准测试后，运行步骤 5。
 
-**Note:** Please refer to the [Episodic Memory Tool Set](./locomo/episodic_memory/README.md) for exact commands.
+**注意：** 请参考 [情景记忆工具集](./locomo/episodic_memory/README.md) 获取确切命令。
 
-### Step 1: Ingest a Conversation
+### 步骤 1：导入对话
 
-First, let's add conversation data to MemMachine. This only needs to be done once per test run.
+首先，让我们将对话数据添加到 MemMachine。每次测试运行只需执行一次。
 
-### Step 2: Search the Conversation
+### 步骤 2：搜索对话
 
-Let's search through the data you just added.
+让我们搜索您刚刚添加的数据。
 
-### Step 3: Evaluate the Responses
+### 步骤 3：评估响应
 
-Next, run a LoCoMo evaluation against the search results.
+接下来，对搜索结果运行 LoCoMo 评估。
 
-### Step 4: Generate Your Final Score
+### 步骤 4：生成最终分数
 
-Once the evaluation is complete, you can generate the final scores.
+评估完成后，您可以生成最终分数。
 
-The output will be a table in your shell showing the mean scores for each category and an overall score, like the example below:
+输出将是您终端中的一个表格，显示每个类别的平均分数和总体分数，如下例所示：
 ```sh
 Mean Scores Per Category:
           llm_score  count         type
@@ -67,6 +67,6 @@ llm_score    0.8487
 dtype: float64
 ```
 
-### Step 5: Clean Up Your Data
+### 步骤 5：清理数据
 
-When you're finished, you may want to delete the test data.
+完成后，您可能想要删除测试数据。

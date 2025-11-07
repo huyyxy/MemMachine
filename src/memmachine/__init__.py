@@ -1,7 +1,3 @@
-# Export REST client classes for convenient import
-from memmachine.rest_client import MemMachineClient, Memory
-
-
 def setup_nltk():
     """Checks for and downloads required NLTK data packages."""
     import nltk
@@ -20,6 +16,3 @@ def setup_nltk():
             print(f"⚠️ - NLTK package '{pkg_id}' not found. Downloading...")
             nltk.download(pkg_id)
     print("\nNLTK data setup is complete. ✨")
-
-
-__all__ = ["setup_nltk", "MemMachineClient", "Memory"]

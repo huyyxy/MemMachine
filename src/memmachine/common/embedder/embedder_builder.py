@@ -1,5 +1,5 @@
 """
-Builder for Embedder instances.
+用于构建 Embedder 实例的构建器。
 """
 
 from typing import Any
@@ -12,11 +12,11 @@ from .embedder import Embedder
 
 class EmbedderBuilder(Builder):
     """
-    Builder for Embedder instances.
+    用于构建 Embedder 实例的构建器。
     """
 
-    # Do not type hint with SentenceTransformer to avoid importing it unnecessarily
-    # Long-term solution is to refactor to use dependency injection
+    # 不使用 SentenceTransformer 进行类型提示，以避免不必要的导入
+    # 长期解决方案是重构为使用依赖注入
     _embedders: dict[str, Any] = {}
 
     @staticmethod
@@ -91,7 +91,7 @@ class EmbedderBuilder(Builder):
                 model_name = config.get("model")
                 if model_name is None:
                     raise ValueError(
-                        "'model' must be provided for sentence-transformer"
+                        "model_name must be provided for sentence-transformer"
                     )
                 if not isinstance(model_name, str):
                     raise TypeError("model_name must be a string")

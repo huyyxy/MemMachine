@@ -1,5 +1,5 @@
 """
-Builder for VectorGraphStore instances.
+VectorGraphStore 实例的构建器。
 """
 
 from typing import Any
@@ -14,7 +14,7 @@ from .vector_graph_store import VectorGraphStore
 
 class VectorGraphStoreBuilder(Builder):
     """
-    Builder for VectorGraphStore instances.
+    VectorGraphStore 实例的构建器。
     """
 
     @staticmethod
@@ -39,16 +39,16 @@ class VectorGraphStoreBuilder(Builder):
                 )
 
                 class Neo4jFactoryParams(BaseModel):
-                    uri: str = Field(..., description="Neo4j connection URI")
-                    username: str = Field(..., description="Neo4j username")
-                    password: SecretStr = Field(..., description="Neo4j password")
+                    uri: str = Field(..., description="Neo4j 连接 URI")
+                    username: str = Field(..., description="Neo4j 用户名")
+                    password: SecretStr = Field(..., description="Neo4j 密码")
                     max_concurrent_transactions: int = Field(
                         100,
-                        description="Maximum number of concurrent transactions",
+                        description="最大并发事务数",
                         gt=0,
                     )
                     force_exact_similarity_search: bool = Field(
-                        False, description="Whether to force exact similarity search"
+                        False, description="是否强制精确相似度搜索"
                     )
 
                 factory_params = Neo4jFactoryParams(**config)
@@ -68,4 +68,4 @@ class VectorGraphStoreBuilder(Builder):
                     )
                 )
             case _:
-                raise ValueError(f"Unknown VectorGraphStore name: {name}")
+                raise ValueError(f"未知的 VectorGraphStore 名称: {name}")

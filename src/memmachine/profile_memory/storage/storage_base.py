@@ -6,30 +6,30 @@ import numpy as np
 
 class ProfileStorageBase(ABC):
     """
-    The base class for profile storage
+    配置存储的基类
     """
 
     @abstractmethod
     async def startup(self):
         """
-        initializations for the profile storage,
-        such as creating connection to the database
+        配置存储的初始化操作，
+        例如创建数据库连接
         """
         raise NotImplementedError
 
     @abstractmethod
     async def cleanup(self):
         """
-        cleanup for the profile storage
-        such as closing connection to the database
+        配置存储的清理操作
+        例如关闭数据库连接
         """
         raise NotImplementedError
 
     @abstractmethod
     async def delete_all(self):
         """
-        delete all profiles in the storage
-        such as truncating the database table
+        删除存储中的所有配置
+        例如清空数据库表
         """
         raise NotImplementedError
 
@@ -40,9 +40,9 @@ class ProfileStorageBase(ABC):
         isolations: dict[str, bool | int | float | str] | None = None,
     ) -> dict[str, Any]:
         """
-        Get profile by id
-        Return: A list of KV for eatch feature and value.
-           The value is an array with: feature value, feature tag and deleted, update time, create time and delete time.
+        根据ID获取配置
+        返回: 每个特征和值的键值对列表。
+           值是一个数组，包含：特征值、特征标签、是否已删除、更新时间、创建时间和删除时间。
         """
         raise NotImplementedError
 
@@ -53,7 +53,7 @@ class ProfileStorageBase(ABC):
         isolations: dict[str, bool | int | float | str] | None = None,
     ):
         """
-        Delete all the profile by id
+        根据ID删除所有配置
         """
         raise NotImplementedError
 
@@ -70,7 +70,7 @@ class ProfileStorageBase(ABC):
         citations: list[int] | None = None,
     ):
         """
-        Add a new feature to the profile.
+        向配置中添加新特征
         """
         raise NotImplementedError
 
@@ -106,7 +106,7 @@ class ProfileStorageBase(ABC):
         isolations: dict[str, bool | int | float | str] | None = None,
     ):
         """
-        Delete a feature from the profile with the key from the given user
+        从指定用户的配置中删除一个特征
         """
         raise NotImplementedError
 
@@ -118,7 +118,7 @@ class ProfileStorageBase(ABC):
         isolations: dict[str, bool | int | float | str] | None = None,
     ) -> list[list[dict[str, Any]]]:
         """
-        get sections of profile with at least thresh entries
+        获取配置中至少包含thresh个条目的部分
         """
         raise NotImplementedError
 
@@ -150,15 +150,15 @@ class ProfileStorageBase(ABC):
         is_ingested: bool = False,
     ) -> list[Mapping[str, Any]]:
         """
-        retrieve the list of the history messages for the user
-        with the ingestion status, up to k messages if k > 0
+        根据摄入状态检索用户的历史消息列表
+        如果k > 0，最多返回k条消息
         """
         raise NotImplementedError
 
     @abstractmethod
     async def get_uningested_history_messages_count(self) -> int:
         """
-        retrieve the count of the uningested history messages
+        检索未摄入的历史消息数量
         """
         raise NotImplementedError
 
@@ -168,7 +168,7 @@ class ProfileStorageBase(ABC):
         ids: list[int],
     ) -> None:
         """
-        mark the messages with the id as ingested
+        将指定ID的消息标记为已摄入
         """
         raise NotImplementedError
 

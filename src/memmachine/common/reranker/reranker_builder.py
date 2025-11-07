@@ -1,5 +1,5 @@
 """
-Builder for Reranker instances.
+Reranker 实例的构建器。
 """
 
 from typing import Any
@@ -11,7 +11,7 @@ from .reranker import Reranker
 
 class RerankerBuilder(Builder):
     """
-    Builder for Reranker instances.
+    Reranker 实例的构建器。
     """
 
     _rerankers: dict[str, Any] = {}
@@ -50,7 +50,6 @@ class RerankerBuilder(Builder):
                     region_name=region,
                     aws_access_key_id=config["aws_access_key_id"],
                     aws_secret_access_key=config["aws_secret_access_key"],
-                    aws_session_token=config.get("aws_session_token", None),
                 )
 
                 return AmazonBedrockReranker(
@@ -76,17 +75,17 @@ class RerankerBuilder(Builder):
 
                 def default_tokenize(text: str) -> list[str]:
                     """
-                    Preprocess the input text
-                    by removing non-alphanumeric characters,
-                    converting to lowercase,
-                    word-tokenizing,
-                    and removing stop words.
+                    对输入文本进行预处理：
+                    移除非字母数字字符、
+                    转换为小写、
+                    进行分词、
+                    并移除停用词。
 
                     Args:
-                        text (str): The input text to preprocess.
+                        text (str): 要预处理的输入文本。
 
                     Returns:
-                        list[str]: A list of tokens for use in BM25 scoring.
+                        list[str]: 用于 BM25 评分的词元列表。
                     """
                     alphanumeric_text = re.sub(r"\W+", " ", text)
                     lower_text = alphanumeric_text.lower()

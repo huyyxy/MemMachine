@@ -1,16 +1,13 @@
-"""Core module for the Profile Memory engine.
+"""Profile Memory 引擎的核心模块。
 
-This module contains the `ProfileMemory` class, which is the central component
-for creating, managing, and searching user profiles based on their
-conversation history. It integrates with language models for intelligent
-information extraction and a vector database for semantic search capabilities.
+本模块包含 `ProfileMemory` 类，这是基于用户对话历史创建、管理和搜索用户档案的核心组件。
+它集成了语言模型用于智能信息提取，以及向量数据库用于语义搜索功能。
 """
 
 import asyncio
 import datetime
 import json
 import logging
-import re
 from itertools import accumulate, groupby, tee
 from typing import Any
 
@@ -29,11 +26,9 @@ logger = logging.getLogger(__name__)
 
 
 class ProfileUpdateTracker:
-    """Tracks profile update activity for a user.
-    When a user sends messages, this class keeps track of how many
-    messages have been sent and when the first message was sent.
-    This is used to determine when to trigger profile updates based
-    on message count and time intervals.
+    """跟踪用户的档案更新活动。
+    当用户发送消息时，此类跟踪已发送的消息数量以及第一条消息的发送时间。
+    这用于根据消息数量和时间间隔确定何时触发档案更新。
     """
 
     def __init__(self, user: str, message_limit: int, time_limit_sec: float):
@@ -44,17 +39,16 @@ class ProfileUpdateTracker:
         self._first_updated: datetime.datetime | None = None
 
     def mark_update(self):
-        """Marks that a new message has been sent by the user.
-        Increments the message count and sets the first updated time
-        if this is the first message.
+        """标记用户已发送新消息。
+        增加消息计数，如果这是第一条消息，则设置首次更新时间。
         """
         self._message_count += 1
         if self._first_updated is None:
             self._first_updated = datetime.datetime.now()
 
     def _seconds_from_first_update(self) -> float | None:
-        """Returns the number of seconds since the first message was sent.
-        If no messages have been sent, returns None.
+        """返回自第一条消息发送以来经过的秒数。
+        如果尚未发送任何消息，返回 None。
         """
         if self._first_updated is None:
             return None
@@ -62,20 +56,19 @@ class ProfileUpdateTracker:
         return delta.total_seconds()
 
     def reset(self):
-        """Resets the tracker state.
-        Clears the message count and first updated time.
+        """重置跟踪器状态。
+        清除消息计数和首次更新时间。
         """
         self._message_count = 0
         self._first_updated = None
 
     def should_update(self) -> bool:
-        """Determines if a profile update should be triggered.
-        A profile update is triggered if either the message count
-        exceeds the limit or the time since the first message exceeds
-        the time limit.
+        """判断是否应该触发档案更新。
+        如果消息数量超过限制，或者自第一条消息以来的时间超过时间限制，
+        则会触发档案更新。
 
-        Returns:
-            bool: True if a profile update should be triggered, False otherwise.
+        返回:
+            bool: 如果应该触发档案更新则返回 True，否则返回 False。
         """
         if self._message_count == 0:
             return False
@@ -86,7 +79,7 @@ class ProfileUpdateTracker:
 
 
 class ProfileUpdateTrackerManager:
-    """Manages ProfileUpdateTracker instances for multiple users."""
+    """管理多个用户的 ProfileUpdateTracker 实例。"""
 
     def __init__(self, message_limit: int, time_limit_sec: float):
         self._trackers: dict[str, ProfileUpdateTracker] = {}
@@ -102,8 +95,8 @@ class ProfileUpdateTrackerManager:
         )
 
     async def mark_update(self, user: str):
-        """Marks that a new message has been sent by the user.
-        Creates a new tracker if one does not exist for the user.
+        """标记用户已发送新消息。
+        如果该用户不存在跟踪器，则创建一个新的跟踪器。
         """
         async with self._trackers_lock:
             if user not in self._trackers:
@@ -111,9 +104,8 @@ class ProfileUpdateTrackerManager:
             self._trackers[user].mark_update()
 
     async def get_users_to_update(self) -> list[str]:
-        """Returns a list of users whose profiles need to be updated.
-        A profile update is needed if the user's tracker indicates
-        that an update should be triggered.
+        """返回需要更新档案的用户列表。
+        如果用户的跟踪器指示应该触发更新，则需要更新档案。
         """
         async with self._trackers_lock:
             ret = []
@@ -126,48 +118,44 @@ class ProfileUpdateTrackerManager:
 
 class ProfileMemory:
     # pylint: disable=too-many-instance-attributes
-    """Manages and maintains user profiles based on conversation history.
+    """基于对话历史管理和维护用户档案。
 
-    This class uses a language model to intelligently extract, update, and
-    consolidate user profile information from conversations. It stores structured
-    profile data (features, values, tags) along with their vector embeddings in a
-    persistent database, allowing for efficient semantic search.
+    此类使用语言模型智能地从对话中提取、更新和整合用户档案信息。
+    它将结构化的档案数据（特征、值、标签）及其向量嵌入存储在持久数据库中，
+    以实现高效的语义搜索。
 
-    Key functionalities include:
-    - Ingesting conversation messages to update profiles.
-    - Consolidating and deduplicating profile entries to maintain accuracy and
-      conciseness.
-    - Providing CRUD operations for profile data.
-    - Performing semantic searches on user profiles.
-    - Caching frequently accessed profiles to improve performance.
+    主要功能包括：
+    - 摄取对话消息以更新档案。
+    - 整合和去重档案条目，以保持准确性和简洁性。
+    - 提供档案数据的 CRUD 操作。
+    - 对用户档案执行语义搜索。
+    - 缓存经常访问的档案以提高性能。
 
-    The process is largely asynchronous, designed to work within an async
-    application.
+    该过程主要是异步的，设计用于在异步应用程序中工作。
 
-    Args:
-        model (LanguageModel): The language model for profile extraction.
-        embeddings (Embedder): The model for generating vector embeddings.
-        profile_storage (ProfileStorageBase): Connection to the profile database.
-        prompt (ProfilePrompt): The system prompts to be used.
-        max_cache_size (int, optional): Max size for the profile LRU cache.
-            Defaults to 1000.
+    参数:
+        model (LanguageModel): 用于档案提取的语言模型。
+        embeddings (Embedder): 用于生成向量嵌入的模型。
+        profile_storage (ProfileStorageBase): 与档案数据库的连接。
+        prompt (ProfilePrompt): 要使用的系统提示。
+        max_cache_size (int, optional): 档案 LRU 缓存的最大大小。
+            默认为 1000。
     """
 
     PROFILE_UPDATE_INTERVAL_SEC = 2
-    """ Interval in seconds for profile updates. This controls how often the
-    background task checks for dirty users and processes their
-    conversation history to update profiles.
+    """ 档案更新的间隔（秒）。这控制后台任务检查需要更新的用户
+    并处理其对话历史以更新档案的频率。
     """
 
     PROFILE_UPDATE_MESSAGE_LIMIT = 5
-    """ Number of messages after which a profile update is triggered.
-    If a user sends this many messages, their profile will be updated.
+    """ 触发档案更新的消息数量。
+    如果用户发送了这么多消息，将更新其档案。
     """
 
     PROFILE_UPDATE_TIME_LIMIT_SEC = 120.0
-    """ Time in seconds after which a profile update is triggered.
-    If a user has sent messages and this much time has passed since
-    the first message, their profile will be updated.
+    """ 触发档案更新的时间（秒）。
+    如果用户已发送消息，且自第一条消息以来已过去这么长时间，
+    将更新其档案。
     """
 
     def __init__(
@@ -207,11 +195,11 @@ class ProfileMemory:
         self._profile_cache = LRUCache(self._max_cache_size)
 
     async def startup(self):
-        """Initializes resources, such as the database connection pool."""
+        """初始化资源，例如数据库连接池。"""
         await self._profile_storage.startup()
 
     async def cleanup(self):
-        """Releases resources, such as the database connection pool."""
+        """释放资源，例如数据库连接池。"""
         self._is_shutting_down = True
         await self._ingestion_task
         await self._profile_storage.cleanup()
@@ -223,14 +211,14 @@ class ProfileMemory:
         user_id: str,
         isolations: dict[str, bool | int | float | str] | None = None,
     ):
-        """Retrieves a user's profile, using a cache for performance.
+        """检索用户的档案，使用缓存以提高性能。
 
-        Args:
-            user_id: The ID of the user.
-            isolations: A dictionary for data isolation.
+        参数:
+            user_id: 用户的 ID。
+            isolations: 用于数据隔离的字典。
 
-        Returns:
-            The user's profile data.
+        返回:
+            用户的档案数据。
         """
         if isolations is None:
             isolations = {}
@@ -242,7 +230,7 @@ class ProfileMemory:
         return profile
 
     async def delete_all(self):
-        """Deletes all user profiles from the database and clears the cache."""
+        """从数据库中删除所有用户档案并清除缓存。"""
         self._profile_cache = LRUCache(self._max_cache_size)
         await self._profile_storage.delete_all()
 
@@ -251,11 +239,11 @@ class ProfileMemory:
         user_id: str,
         isolations: dict[str, bool | int | float | str] | None = None,
     ):
-        """Deletes a specific user's profile.
+        """删除特定用户的档案。
 
-        Args:
-            user_id: The ID of the user whose profile will be deleted.
-            isolations: A dictionary for data isolation.
+        参数:
+            user_id: 要删除其档案的用户 ID。
+            isolations: 用于数据隔离的字典。
         """
         if isolations is None:
             isolations = {}
@@ -274,18 +262,18 @@ class ProfileMemory:
     ):
         # pylint: disable=too-many-arguments
         # pylint: disable=too-many-positional-arguments
-        """Adds a new feature to a user's profile.
+        """向用户档案添加新特征。
 
-        This invalidates the cache for the user's profile.
+        这将使该用户档案的缓存失效。
 
-        Args:
-            user_id: The ID of the user.
-            feature: The profile feature (e.g., "likes").
-            value: The value for the feature (e.g., "dogs").
-            tag: A category or tag for the feature.
-            metadata: Additional metadata for the profile entry.
-            isolations: A dictionary for data isolation.
-            citations: A list of message IDs that are sources for this feature.
+        参数:
+            user_id: 用户的 ID。
+            feature: 档案特征（例如，"likes"）。
+            value: 特征的值（例如，"dogs"）。
+            tag: 特征的类别或标签。
+            metadata: 档案条目的附加元数据。
+            isolations: 用于数据隔离的字典。
+            citations: 作为此特征来源的消息 ID 列表。
         """
         if isolations is None:
             isolations = {}
@@ -314,17 +302,16 @@ class ProfileMemory:
         value: str | None = None,
         isolations: dict[str, bool | int | float | str] | None = None,
     ):
-        """Deletes a specific feature from a user's profile.
+        """从用户档案中删除特定特征。
 
-        This invalidates the cache for the user's profile.
+        这将使该用户档案的缓存失效。
 
-        Args:
-            user_id: The ID of the user.
-            feature: The profile feature to delete.
-            tag: The tag of the feature to delete.
-            value: The specific value to delete. If None, all values for the
-                feature and tag are deleted.
-            isolations: A dictionary for data isolation.
+        参数:
+            user_id: 用户的 ID。
+            feature: 要删除的档案特征。
+            tag: 要删除的特征标签。
+            value: 要删除的特定值。如果为 None，则删除该特征和标签的所有值。
+            isolations: 用于数据隔离的字典。
         """
         if isolations is None:
             isolations = {}
@@ -337,24 +324,19 @@ class ProfileMemory:
         self, arr: list[tuple[float, Any]], max_range: float, max_std: float
     ) -> list[Any]:
         """
-        Filters a list of semantically searched entries based on similarity.
+        基于相似度过滤语义搜索条目列表。
 
-        Finds the longest prefix of the list of entries returned by
-        semantic_search such that:
-         - The difference between max and min similarity is at most
-           `max_range`.
-         - The standard deviation of similarity scores is at most `max_std`.
+        找到由 semantic_search 返回的条目列表的最长前缀，使得：
+         - 最大和最小相似度之间的差值最多为 `max_range`。
+         - 相似度分数的标准差最多为 `max_std`。
 
-        Args:
-            arr: A list of tuples, where each tuple contains a similarity
-                score and the corresponding entry.
-            max_range: The maximum allowed range between the highest and lowest
-                similarity scores.
-            max_std: The maximum allowed standard deviation of similarity
-                     scores.
+        参数:
+            arr: 元组列表，其中每个元组包含相似度分数和相应的条目。
+            max_range: 最高和最低相似度分数之间允许的最大范围。
+            max_std: 相似度分数允许的最大标准差。
 
-        Returns:
-            A filtered list of entries.
+        返回:
+            过滤后的条目列表。
         """
         if len(arr) == 0:
             return []
@@ -380,21 +362,21 @@ class ProfileMemory:
         isolations: dict[str, bool | int | float | str] | None = None,
         user_id: str = "",
     ) -> list[Any]:
-        """Performs a semantic search on a user's profile.
+        """对用户档案执行语义搜索。
 
-        Args:
-            user_id: The ID of the user.
-            query: The search query string.
-            k: The maximum number of results to retrieve from the database.
-            min_cos: The minimum cosine similarity for results.
-            max_range: The maximum range for the `range_filter`.
-            max_std: The maximum standard deviation for the `range_filter`.
-            isolations: A dictionary for data isolation.
+        参数:
+            user_id: 用户的 ID。
+            query: 搜索查询字符串。
+            k: 从数据库检索的最大结果数。
+            min_cos: 结果的最小余弦相似度。
+            max_range: `range_filter` 的最大范围。
+            max_std: `range_filter` 的最大标准差。
+            isolations: 用于数据隔离的字典。
 
-        Returns:
-            A list of matching profile entries, filtered by similarity scores.
+        返回:
+            匹配的档案条目列表，按相似度分数过滤。
         """
-        # TODO: cache this # pylint: disable=fixme
+        # TODO: 缓存此查询 # pylint: disable=fixme
         if isolations is None:
             isolations = {}
         qemb = (await self._embeddings.search_embed([query]))[0]
@@ -410,22 +392,19 @@ class ProfileMemory:
         thresh: int = 5,
         isolations: dict[str, bool | int | float | str] | None = None,
     ) -> list[list[dict[str, Any]]]:
-        """Retrieves profile sections with a large number of entries.
+        """检索包含大量条目的档案部分。
 
-        A "section" is a group of profile entries with the same feature and
-        tag. This is used to find sections that may need consolidation.
+        "部分"是具有相同特征和标签的档案条目组。这用于查找可能需要整合的部分。
 
-        Args:
-            user_id: The ID of the user.
-            thresh: The minimum number of entries for a section to be
-                considered "large".
-            isolations: A dictionary for data isolation.
+        参数:
+            user_id: 用户的 ID。
+            thresh: 一个部分被视为"大"的最小条目数。
+            isolations: 用于数据隔离的字典。
 
-        Returns:
-            A list of large profile sections, where each section is a list of
-            profile entries.
+        返回:
+            大型档案部分的列表，其中每个部分是档案条目列表。
         """
-        # TODO: useless wrapper. delete? # pylint: disable=fixme
+        # TODO: 无用的包装器。删除？ # pylint: disable=fixme
         if isolations is None:
             isolations = {}
         return await self._profile_storage.get_large_profile_sections(
@@ -438,26 +417,23 @@ class ProfileMemory:
         content: str,
         metadata: dict[str, str] | None = None,
         isolations: dict[str, bool | int | float | str] | None = None,
-        user_id: str = "",  # TODO fully deprecate user_id parameter
+        user_id: str = "",  # TODO 完全废弃 user_id 参数
     ):
-        """Adds a message to the history and may trigger a profile update.
+        """向历史记录添加消息，并可能触发档案更新。
 
-        After a certain number of messages (`_update_interval`), this method
-        will trigger a profile update and consolidation process.
+        在达到一定数量的消息（`_update_interval`）后，此方法将触发档案更新和整合过程。
 
-        Args:
-            user_id: The ID of the user.
-            content: The content of the message.
-            metadata: Metadata associated with the message, such as the
-                     speaker.
-            isolations: A dictionary for data isolation.
+        参数:
+            user_id: 用户的 ID。
+            content: 消息的内容。
+            metadata: 与消息关联的元数据，例如发言者。
+            isolations: 用于数据隔离的字典。
 
-        Returns:
-            A boolean indicating whether the consolidation process was awaited.
+        返回:
+            一个布尔值，指示是否等待了整合过程。
         """
-        # TODO: add or adopt system for more general modifications of
+        # TODO: 添加或采用用于更通用消息修改的系统
         # pylint: disable=fixme
-        # the message
         if metadata is None:
             metadata = {}
         if isolations is None:
@@ -477,7 +453,7 @@ class ProfileMemory:
         while not self._is_shutting_down:
             dirty_users = await self._dirty_users.get_users_to_update()
             logger.debug(
-                "ProfileMemory - Background task checking for dirty users: %s",
+                "ProfileMemory - 后台任务检查需要更新的用户: %s",
                 dirty_users,
             )
 
@@ -486,7 +462,7 @@ class ProfileMemory:
                 continue
 
             logger.debug(
-                "ProfileMemory - Processing uningested memories for users: %s",
+                "ProfileMemory - 处理用户的未摄取记忆: %s",
                 dirty_users,
             )
             await asyncio.gather(
@@ -501,7 +477,7 @@ class ProfileMemory:
         )
 
         def key_fn(r):
-            # normalize JSONB dict to a stable string key
+            # 将 JSONB 字典标准化为稳定的字符串键
             return json.dumps(r["isolations"], sort_keys=True)
 
         rows = sorted(rows, key=key_fn)
@@ -512,29 +488,37 @@ class ProfileMemory:
         user_id: str,
     ):
         logger.debug(
-            "ProfileMemory - Processing uningested memories for user: %s", user_id
+            "ProfileMemory - 处理用户未摄取的记忆: %s", user_id
         )
         message_isolation_groups = await self._get_isolation_grouped_memories(user_id)
         logger.debug(
-            "ProfileMemory - Found %d message isolation groups for user %s",
+            "ProfileMemory - 为用户 %s 找到 %d 个消息隔离组",
             len(message_isolation_groups),
             user_id,
         )
 
         async def process_messages(messages):
             if len(messages) == 0:
+                logger.debug("ProfileMemory - 没有要处理的消息")
                 return
 
-            logger.debug("ProfileMemory - Processing %d messages", len(messages))
+            logger.debug("ProfileMemory - 处理 %d 条消息", len(messages))
             mark_tasks = []
 
             for i in range(0, len(messages) - 1):
                 message = messages[i]
+                logger.debug(
+                    "ProfileMemory - 为用户 %s 处理第 %d 条消息", i, user_id
+                )
                 await self._update_user_profile_think(message)
                 mark_tasks.append(
                     self._profile_storage.mark_messages_ingested([message["id"]])
                 )
 
+            logger.debug(
+                "ProfileMemory - 为用户 %s 处理最后一条消息（带整合）",
+                user_id,
+            )
             await self._update_user_profile_think(messages[-1], wait_consolidate=True)
             mark_tasks.append(
                 self._profile_storage.mark_messages_ingested([messages[-1]["id"]])
@@ -547,149 +531,16 @@ class ProfileMemory:
 
         await asyncio.gather(*tasks)
 
-    def _parse_llm_json_response(
-        self, response_text: str, response_type: str = "update"
-    ) -> tuple[str, str]:
-        """Parse JSON from LLM response with hybrid approach.
-
-        Strategy:
-        1. Fast path: Try OpenAI-friendly format first (expects clean JSON after tags)
-        2. Fallback: Use robust parsing for non-OpenAI models with various formats
-
-        Args:
-            response_text: Raw LLM response text
-            response_type: Type of response ("update" or "consolidation") for logging
-
-        Returns:
-            Tuple of (thinking/reasoning text, json_string)
-        """
-        thinking = ""
-        response_json = ""
-
-        # Strategy 1: OpenAI-friendly format - try standard tags first
-        # Check for common OpenAI-friendly tags (prompts use <think> tags)
-        openai_tag_patterns = [
-            ("<think>", "</think>"),  # Primary format from prompts
-        ]
-
-        for open_tag, close_tag in openai_tag_patterns:
-            if open_tag in response_text and close_tag in response_text:
-                thinking_part, _, json_part = response_text.removeprefix(
-                    open_tag
-                ).rpartition(close_tag)
-                thinking = thinking_part.strip()
-                response_json = json_part.strip()
-
-                # Try parsing - if successful, we're done (fast path)
-                try:
-                    json.loads(response_json)
-                    logger.debug(
-                        "ProfileMemory - Successfully parsed %s response using OpenAI format (%s tags)",
-                        response_type,
-                        open_tag,
-                    )
-                    return thinking, response_json
-                except (ValueError, json.JSONDecodeError):
-                    # JSON part exists but is malformed - continue to robust parsing
-                    logger.debug(
-                        "ProfileMemory - OpenAI format detected but JSON is malformed, "
-                        "trying robust parsing for %s",
-                        response_type,
-                    )
-                    # Keep the extracted parts for further processing
-                    break
-
-        # If no OpenAI tags found or parsing failed, try to extract JSON directly
-        if not response_json:
-            response_json = response_text.strip()
-
-        # Strategy 2: Robust parsing for non-OpenAI models
-        # Try to find JSON wrapped in various tags
-        json_patterns = [
-            (r"<OLD_PROFILE>\s*(\{.*?\})\s*</OLD_PROFILE>", "OLD_PROFILE"),
-            (r"<NEW_PROFILE>\s*(\{.*?\})\s*</NEW_PROFILE>", "NEW_PROFILE"),
-            (r"<profile>\s*(\{.*?\})\s*</profile>", "profile"),
-            (r"<json>\s*(\{.*?\})\s*</json>", "json"),
-            (r"```json\s*(\{.*?\})\s*```", "json code block"),
-            (r"```\s*(\{.*?\})\s*```", "code block"),
-        ]
-
-        for pattern, pattern_name in json_patterns:
-            match = re.search(pattern, response_text, re.DOTALL)
-            if match:
-                response_json = match.group(1).strip()
-                logger.debug(
-                    "ProfileMemory - Found JSON in %s tag for %s",
-                    pattern_name,
-                    response_type,
-                )
-                break
-
-        # Strategy 3: If no tagged JSON found, look for the last JSON object
-        if not response_json or not response_json.startswith("{"):
-            # Find the last complete JSON object in the response
-            # This handles cases where JSON is at the end after reasoning text
-            json_match = re.search(r"(\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\})", response_text)
-            if json_match:
-                response_json = json_match.group(1).strip()
-                logger.debug(
-                    "ProfileMemory - Extracted JSON object from end of response for %s",
-                    response_type,
-                )
-
-        # Strategy 4: If still no JSON found, use entire response
-        if not response_json:
-            response_json = response_text.strip()
-            logger.debug(
-                "ProfileMemory - Using entire response as JSON for %s", response_type
-            )
-
-        # Conservative cleanup - only fix obvious issues that won't break valid JSON
-        if response_json:
-            original_json = response_json
-
-            # Remove invalid syntax like "... (other tags remain the same)" (common LLM insertion)
-            response_json = re.sub(r"\.\.\.\s*\([^)]*\)", "", response_json)
-
-            # Remove trailing commas before closing braces/brackets (common LLM mistake)
-            response_json = re.sub(r",(\s*[}\]])", r"\1", response_json)
-
-            # Fix incomplete JSON structures (missing closing braces)
-            open_braces = response_json.count("{")
-            close_braces = response_json.count("}")
-            if open_braces > close_braces:
-                response_json += "}" * (open_braces - close_braces)
-
-            # Log if we made changes
-            if response_json != original_json:
-                logger.debug(
-                    "ProfileMemory - Cleaned up JSON for %s (removed trailing commas, fixed braces)",
-                    response_type,
-                )
-
-        # Extract thinking if we haven't already (for non-OpenAI format)
-        if not thinking:
-            for open_tag, close_tag in openai_tag_patterns:
-                if open_tag in response_text and close_tag in response_text:
-                    thinking_part, _, _ = response_text.removeprefix(
-                        open_tag
-                    ).rpartition(close_tag)
-                    thinking = thinking_part.strip()
-                    break
-
-        return thinking, response_json
-
     async def _update_user_profile_think(
         self,
         record: Any,
         wait_consolidate: bool = False,
     ):
         """
-        update user profile based on json output, after doing a chain
-        of thought.
+        在执行思维链后，基于 JSON 输出更新用户档案。
         """
-        # TODO: These really should not be raw data structures.
-        citation_id = record["id"]  # Think this is an int
+        # TODO: 这些真的不应该是原始数据结构。
+        citation_id = record["id"]  # 认为这是一个整数
         user_id = record["user_id"]
         isolations = json.loads(record["isolations"])
         # metadata = json.loads(record["metadata"])
@@ -711,47 +562,193 @@ class ProfileMemory:
             profile=str(profile),
             memory_content=memory_content,
         )
-        # Use chain-of-thought to get entity profile update commands.
+        # 使用思维链获取实体档案更新命令。
         logger.debug(
-            "ProfileMemory - Calling LLM for profile update with user_id: %s", user_id
+            "ProfileMemory - 调用 LLM 更新档案，user_id: %s", user_id
         )
         try:
             response_text, _ = await self._model.generate_response(
                 system_prompt=self._update_prompt, user_prompt=user_prompt
             )
             logger.debug(
-                "ProfileMemory - LLM response received for user_id: %s", user_id
+                "ProfileMemory - 收到 LLM 响应，user_id: %s", user_id
+            )
+            logger.debug(
+                "ProfileMemory - 原始 LLM 响应，user_id %s: %s",
+                user_id,
+                response_text,
             )
         except (ExternalServiceAPIError, ValueError, RuntimeError) as e:
-            logger.error("Error when update profile: %s", str(e))
+            logger.error("更新档案时出错: %s", str(e))
             return
 
-        # Parse thinking and JSON from language model response using hybrid approach
-        thinking, response_json = self._parse_llm_json_response(
-            response_text, response_type="update"
+        # 从语言模型响应中获取思考和 JSON。
+        # 尝试多种解析策略以处理不同的响应格式
+        thinking = ""
+        response_json = ""
+
+        # 策略 1: 查找 <think> 标签
+        if "<think>" in response_text and "</think>" in response_text:
+            thinking, _, response_json = response_text.removeprefix(
+                "<think>"
+            ).rpartition("</think>")
+            thinking = thinking.strip()
+        # 策略 2: 在响应中查找 JSON 对象
+        else:
+            # 通过查找常见模式尝试从响应中提取 JSON
+            import re
+
+            # 查找包装在各种标签中的 JSON 对象
+            json_patterns = [
+                r"<OLD_PROFILE>\s*(\{.*?\})\s*</OLD_PROFILE>",
+                r"<NEW_PROFILE>\s*(\{.*?\})\s*</NEW_PROFILE>",
+                r"<profile>\s*(\{.*?\})\s*</profile>",
+                r"<json>\s*(\{.*?\})\s*</json>",
+                r"```json\s*(\{.*?\})\s*```",
+                r"```\s*(\{.*?\})\s*```",
+                r"<think>\s*(\{.*?\})\s*</think>",
+            ]
+
+            response_json = ""
+            for pattern in json_patterns:
+                match = re.search(pattern, response_text, re.DOTALL)
+                if match:
+                    response_json = match.group(1).strip()
+                    break
+
+            # 如果未找到带标签的 JSON，尝试在响应末尾查找 JSON
+            if not response_json:
+                # 查找响应中的最后一个 JSON 对象
+                json_match = re.search(
+                    r"(\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\})", response_text
+                )
+                if json_match:
+                    response_json = json_match.group(1).strip()
+                else:
+                    # 如果仍未找到 JSON，使用整个响应
+                    response_json = response_text.strip()
+
+        # 清理常见的 JSON 语法问题
+        if response_json:
+            # 删除无效语法，如 "... (other tags remain the same)"
+            response_json = re.sub(r"\.\.\.\s*\([^)]*\)", "", response_json)
+            # 删除右大括号前的尾随逗号
+            response_json = re.sub(r",(\s*[}\]])", r"\1", response_json)
+
+            # 修复常见的 LLM JSON 格式化问题
+            # 修复未加引号的属性名（例如，tag: "value" -> "tag": "value"）
+            response_json = re.sub(r"(\w+):\s*", r'"\1": ', response_json)
+
+            # 将单引号修复为双引号
+            response_json = re.sub(r"'([^']*)'", r'"\1"', response_json)
+
+            # 将反引号修复为双引号
+            response_json = re.sub(r"`([^`]*)`", r'"\1"', response_json)
+
+            # 修复不完整的 JSON 结构（例如，缺少右大括号）
+            open_braces = response_json.count("{")
+            close_braces = response_json.count("}")
+            if open_braces > close_braces:
+                response_json += "}" * (open_braces - close_braces)
+
+            # 删除任何剩余的无效字符
+            response_json = response_json.strip()
+
+        logger.debug(
+            "ProfileMemory - 为用户 %s 提取的 JSON: %s", user_id, response_json
         )
 
-        # TODO: These really should not be raw data structures.
+        # TODO: 这些真的不应该是原始数据结构。
         try:
             profile_update_commands = json.loads(response_json)
             logger.debug(
-                "ProfileMemory - Successfully parsed profile update commands: %s",
+                "ProfileMemory - 成功为用户 %s 解析 JSON: %s",
+                user_id,
                 profile_update_commands,
             )
-        except (ValueError, json.JSONDecodeError) as e:
+        except ValueError as e:
             logger.warning(
-                "Unable to load language model output '%s' as JSON, Error %s. "
-                "Raw response: %s",
-                str(response_json[:200])
-                if len(response_json) > 200
-                else str(response_json),
+                "无法将语言模型输出 '%s' 加载为 JSON，错误 %s。"
+                "尝试从格式错误的响应中提取有效的 JSON。",
+                str(response_json),
                 str(e),
-                str(response_text[:500])
-                if len(response_text) > 500
-                else str(response_text),
             )
-            profile_update_commands = {}
-            return
+
+            # 尝试从格式错误的响应中提取有效的 JSON
+            try:
+                # 尝试查找并提取 JSON 对象
+                json_objects = []
+                brace_count = 0
+                current_json = ""
+                in_string = False
+                escape_next = False
+
+                for char in response_json:
+                    if escape_next:
+                        current_json += char
+                        escape_next = False
+                        continue
+
+                    if char == "\\":
+                        escape_next = True
+                        current_json += char
+                        continue
+
+                    if char == '"' and not escape_next:
+                        in_string = not in_string
+
+                    current_json += char
+
+                    if not in_string:
+                        if char == "{":
+                            brace_count += 1
+                        elif char == "}":
+                            brace_count -= 1
+                            if brace_count == 0 and current_json.strip():
+                                # 找到了一个完整的 JSON 对象
+                                try:
+                                    obj = json.loads(current_json.strip())
+                                    json_objects.append(obj)
+                                except (
+                                    json.JSONDecodeError,
+                                    ValueError,
+                                ) as decode_error:
+                                    # 忽略格式错误的 JSON 片段；继续扫描
+                                    logger.debug(
+                                        "提取过程中跳过无效的 JSON 对象: %s",
+                                        str(decode_error),
+                                    )
+                                current_json = ""
+
+                if json_objects:
+                    # 将所有有效的 JSON 对象合并为一个
+                    combined_json = {}
+                    for i, obj in enumerate(json_objects):
+                        if isinstance(obj, dict):
+                            for key, value in obj.items():
+                                combined_json[f"{i}_{key}"] = value
+
+                    profile_update_commands = combined_json
+                    logger.debug(
+                        "ProfileMemory - 成功从格式错误的响应中为用户 %s 提取 JSON: %s",
+                        user_id,
+                        profile_update_commands,
+                    )
+                else:
+                    logger.warning(
+                        "无法从格式错误的响应中提取有效的 JSON。继续执行，但没有档案更新命令。"
+                    )
+                    profile_update_commands = {}
+                    return
+
+            except Exception as extraction_error:
+                logger.warning(
+                    "从格式错误的响应中提取 JSON 失败。错误: %s。"
+                    "继续执行，但没有档案更新命令。",
+                    str(extraction_error),
+                )
+                profile_update_commands = {}
+                return
         finally:
             logger.info(
                 "PROFILE MEMORY INGESTOR",
@@ -762,14 +759,12 @@ class ProfileMemory:
                 },
             )
 
-        # This should probably just be a list of commands
-        # instead of a dictionary mapping
-        # from integers in strings (not even bare ints!)
-        # to commands.
-        # TODO: Consider improving this design in a breaking change.
+        # 这可能应该只是一个命令列表，
+        # 而不是从字符串中的整数（甚至不是裸整数！）到命令的字典映射。
+        # TODO: 考虑在破坏性更改中改进此设计。
         if not isinstance(profile_update_commands, dict):
             logger.warning(
-                "AI response format incorrect: expected dict, got %s %s",
+                "AI 响应格式不正确: 期望字典，得到 %s %s",
                 type(profile_update_commands).__name__,
                 profile_update_commands,
             )
@@ -781,8 +776,8 @@ class ProfileMemory:
         for command in commands:
             if not isinstance(command, dict):
                 logger.warning(
-                    "AI response format incorrect: "
-                    "expected profile update command to be dict, got %s %s",
+                    "AI 响应格式不正确: "
+                    "期望档案更新命令为字典，得到 %s %s",
                     type(command).__name__,
                     command,
                 )
@@ -790,37 +785,36 @@ class ProfileMemory:
 
             if "command" not in command:
                 logger.warning(
-                    "AI response format incorrect: missing 'command' key in %s",
+                    "AI 响应格式不正确: 缺少 'command' 键: %s",
                     command,
                 )
                 continue
 
             if command["command"] not in ("add", "delete"):
                 logger.warning(
-                    "AI response format incorrect: "
-                    "expected 'command' value in profile update command "
-                    "to be 'add' or 'delete', got '%s'",
+                    "AI 响应格式不正确: "
+                    "期望档案更新命令中的 'command' 值为 'add' 或 'delete'，得到 '%s'",
                     command["command"],
                 )
                 continue
 
             if "feature" not in command:
                 logger.warning(
-                    "AI response format incorrect: missing 'feature' key in %s",
+                    "AI 响应格式不正确: 缺少 'feature' 键: %s",
                     command,
                 )
                 continue
 
             if "tag" not in command:
                 logger.warning(
-                    "AI response format incorrect: missing 'tag' key in %s",
+                    "AI 响应格式不正确: 缺少 'tag' 键: %s",
                     command,
                 )
                 continue
 
             if command["command"] == "add" and "value" not in command:
                 logger.warning(
-                    "AI response format incorrect: missing 'value' key in %s",
+                    "AI 响应格式不正确: 缺少 'value' 键: %s",
                     command,
                 )
                 continue
@@ -828,14 +822,14 @@ class ProfileMemory:
             valid_commands.append(command)
 
         logger.debug(
-            "ProfileMemory - Executing %d valid commands for user %s",
+            "ProfileMemory - 为用户 %s 执行 %d 个有效命令",
             len(valid_commands),
             user_id,
         )
         for command in valid_commands:
             if command["command"] == "add":
                 logger.debug(
-                    "ProfileMemory - Adding profile feature for user %s: %s",
+                    "ProfileMemory - 为用户 %s 添加档案特征: %s",
                     user_id,
                     command,
                 )
@@ -848,10 +842,14 @@ class ProfileMemory:
                     isolations=isolations,
                     # metadata=metadata
                 )
+                logger.debug(
+                    "ProfileMemory - 成功为用户 %s 添加档案特征",
+                    user_id,
+                )
             elif command["command"] == "delete":
                 value = command["value"] if "value" in command else None
                 logger.debug(
-                    "ProfileMemory - Deleting profile feature for user %s: %s",
+                    "ProfileMemory - 为用户 %s 删除档案特征: %s",
                     user_id,
                     command,
                 )
@@ -863,9 +861,9 @@ class ProfileMemory:
                     isolations=isolations,
                 )
             else:
-                logger.error("Command with unknown action: %s", command["command"])
+                logger.error("未知操作的命令: %s", command["command"])
                 raise ValueError(
-                    "Command with unknown action: " + str(command["command"])
+                    "未知操作的命令: " + str(command["command"])
                 )
 
         if wait_consolidate:
@@ -882,40 +880,109 @@ class ProfileMemory:
         memories: list[dict[str, Any]],
     ):
         """
-        sends a list of features to an llm to consolidated
+        将特征列表发送给 LLM 进行整合。
         """
         try:
             response_text, _ = await self._model.generate_response(
                 system_prompt=self._consolidation_prompt,
                 user_prompt=json.dumps(memories),
             )
+            logger.debug(
+                "ProfileMemory - 整合的原始 LLM 响应: %s", response_text
+            )
         except (ExternalServiceAPIError, ValueError, RuntimeError) as e:
-            logger.error("Model Error when deduplicate profile: %s", str(e))
+            logger.error("去重档案时模型错误: %s", str(e))
             return
 
-        # Parse thinking and JSON from language model response using hybrid approach
-        thinking, response_json = self._parse_llm_json_response(
-            response_text, response_type="consolidation"
-        )
+        # 从语言模型响应中获取思考和 JSON。
+        # 尝试多种解析策略以处理不同的响应格式
+        thinking = ""
+        response_json = ""
 
+        # 策略 1: 查找 <think> 标签
+        if "<think>" in response_text and "</think>" in response_text:
+            thinking, _, response_json = response_text.removeprefix(
+                "<think>"
+            ).rpartition("</think>")
+            thinking = thinking.strip()
+        # 策略 2: 在响应中查找 JSON 对象
+        else:
+            # 通过查找常见模式尝试从响应中提取 JSON
+            import re
+
+            # 查找包装在各种标签中的 JSON 对象
+            json_patterns = [
+                r"<OLD_PROFILE>\s*(\{.*?\})\s*</OLD_PROFILE>",
+                r"<NEW_PROFILE>\s*(\{.*?\})\s*</NEW_PROFILE>",
+                r"<profile>\s*(\{.*?\})\s*</profile>",
+                r"<json>\s*(\{.*?\})\s*</json>",
+                r"```json\s*(\{.*?\})\s*```",
+                r"```\s*(\{.*?\})\s*```",
+                r"<think>\s*(\{.*?\})\s*</think>",
+            ]
+
+            response_json = ""
+            for pattern in json_patterns:
+                match = re.search(pattern, response_text, re.DOTALL)
+                if match:
+                    response_json = match.group(1).strip()
+                    break
+
+            # 如果未找到带标签的 JSON，尝试在响应末尾查找 JSON
+            if not response_json:
+                # 查找响应中的最后一个 JSON 对象
+                json_match = re.search(
+                    r"(\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\})", response_text
+                )
+                if json_match:
+                    response_json = json_match.group(1).strip()
+                else:
+                    # 如果仍未找到 JSON，使用整个响应
+                    response_json = response_text.strip()
+
+        # 清理常见的 JSON 语法问题
+        if response_json:
+            # 删除无效语法，如 "... (other tags remain the same)"
+            response_json = re.sub(r"\.\.\.\s*\([^)]*\)", "", response_json)
+            # 删除右大括号前的尾随逗号
+            response_json = re.sub(r",(\s*[}\]])", r"\1", response_json)
+
+            # 修复常见的 LLM JSON 格式化问题
+            # 修复未加引号的属性名（例如，tag: "value" -> "tag": "value"）
+            response_json = re.sub(r"(\w+):\s*", r'"\1": ', response_json)
+
+            # 将单引号修复为双引号
+            response_json = re.sub(r"'([^']*)'", r'"\1"', response_json)
+
+            # 将反引号修复为双引号
+            response_json = re.sub(r"`([^`]*)`", r'"\1"', response_json)
+
+            # 修复不完整的 JSON 结构（例如，缺少右大括号）
+            open_braces = response_json.count("{")
+            close_braces = response_json.count("}")
+            if open_braces > close_braces:
+                response_json += "}" * (open_braces - close_braces)
+
+            # 删除任何剩余的无效字符
+            response_json = response_json.strip()
+
+        logger.debug(
+            "ProfileMemory - 整合提取的 JSON: %s", response_json
+        )
         try:
             updated_profile_entries = json.loads(response_json)
             logger.debug(
-                "ProfileMemory - Successfully parsed consolidation response: %s",
+                "ProfileMemory - 成功解析整合的 JSON: %s",
                 updated_profile_entries,
             )
-        except (ValueError, json.JSONDecodeError) as e:
+        except ValueError as e:
             logger.warning(
-                "Unable to load language model output '%s' as JSON, Error %s. "
-                "Raw response: %s",
-                str(response_json[:200])
-                if len(response_json) > 200
-                else str(response_json),
+                "无法将语言模型输出 '%s' 加载为 JSON，错误 %s",
+                str(response_json),
                 str(e),
-                str(response_text[:500])
-                if len(response_text) > 500
-                else str(response_text),
             )
+            # 当 JSON 解析失败时记录原始响应以便调试
+            logger.debug("解析失败的原始 LLM 响应: %s", response_text)
             updated_profile_entries = {}
             return
         finally:
@@ -930,7 +997,7 @@ class ProfileMemory:
 
         if not isinstance(updated_profile_entries, dict):
             logger.warning(
-                "AI response format incorrect: expected dict, got %s %s",
+                "AI 响应格式不正确: 期望字典，得到 %s %s",
                 type(updated_profile_entries).__name__,
                 updated_profile_entries,
             )
@@ -938,8 +1005,8 @@ class ProfileMemory:
 
         if "consolidate_memories" not in updated_profile_entries:
             logger.warning(
-                "AI response format incorrect: "
-                "missing 'consolidate_memories' key, got %s",
+                "AI 响应格式不正确: "
+                "缺少 'consolidate_memories' 键，得到 %s",
                 updated_profile_entries,
             )
             updated_profile_entries["consolidate_memories"] = []
@@ -948,7 +1015,7 @@ class ProfileMemory:
 
         if "keep_memories" not in updated_profile_entries:
             logger.warning(
-                "AI response format incorrect: missing 'keep_memories' key, got %s",
+                "AI 响应格式不正确: 缺少 'keep_memories' 键，得到 %s",
                 updated_profile_entries,
             )
             updated_profile_entries["keep_memories"] = []
@@ -959,8 +1026,8 @@ class ProfileMemory:
 
         if not isinstance(consolidate_memories, list):
             logger.warning(
-                "AI response format incorrect: "
-                "'consolidate_memories' value is not a list, got %s %s",
+                "AI 响应格式不正确: "
+                "'consolidate_memories' 值不是列表，得到 %s %s",
                 type(consolidate_memories).__name__,
                 consolidate_memories,
             )
@@ -969,8 +1036,8 @@ class ProfileMemory:
 
         if not isinstance(keep_memories, list):
             logger.warning(
-                "AI response format incorrect: "
-                "'keep_memories' value is not a list, got %s %s",
+                "AI 响应格式不正确: "
+                "'keep_memories' 值不是列表，得到 %s %s",
                 type(keep_memories).__name__,
                 keep_memories,
             )
@@ -982,8 +1049,8 @@ class ProfileMemory:
             for memory_id in keep_memories:
                 if not isinstance(memory_id, int):
                     logger.warning(
-                        "AI response format incorrect: "
-                        "expected int memory id in 'keep_memories', got %s %s",
+                        "AI 响应格式不正确: "
+                        "期望 'keep_memories' 中的整数记忆 ID，得到 %s %s",
                         type(memory_id).__name__,
                         memory_id,
                     )
@@ -1012,7 +1079,7 @@ class ProfileMemory:
                 consolidate_memory = ConsolidateMemory(**memory)
             except Exception as e:
                 logger.warning(
-                    "AI response format incorrect: unable to parse memory %s, error %s",
+                    "AI 响应格式不正确: 无法解析记忆 %s，错误 %s",
                     memory,
                     str(e),
                 )
@@ -1024,8 +1091,7 @@ class ProfileMemory:
 
             new_citations = [i[0] for i in associations]
 
-            # a derivative shall contain all routing information of its
-            # components that do not mutually conflict.
+            # 派生项应包含其所有组件的路由信息，这些组件不会相互冲突。
             new_isolations: dict[str, bool | int | float | str] = {}
             bad = set()
             for i in associations:

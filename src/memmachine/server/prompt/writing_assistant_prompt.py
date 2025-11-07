@@ -1,10 +1,10 @@
 """
-Writing Assistant prompt for MemMachine
-Handles writing style analysis and content generation using persona-based approach
+MemMachine 写作助手提示词
+使用基于角色的方法处理写作风格分析和内容生成
 """
 
 # -----------------------
-# WRITING STYLE FEATURES
+# 写作风格特征
 # -----------------------
 WRITING_STYLE_FEATURES = [
     "tone",
@@ -34,232 +34,232 @@ WRITING_STYLE_FEATURES = [
 ]
 
 # -----------------------
-# MAGIC KEYWORD DETECTION
+# 魔法关键词检测
 # -----------------------
 SUBMIT_KEYWORD_PROMPT = """
-You are an AI assistant that detects and processes writing style submission requests.
+你是一个AI助手，负责检测和处理写作风格提交请求。
 
-**MAGIC KEYWORD DETECTION:**
-- Look for the magic keyword "/submit" at the beginning of user messages
-- After "/submit", the user may specify a content type (email, blog, linkedin, etc.)
-- If no content type is specified, assume "general"
-- Everything after the content type (or after "/submit" if no type) is the writing sample
+**魔法关键词检测：**
+- 在用户消息的开头查找魔法关键词 "/submit"
+- "/submit" 之后，用户可能会指定内容类型（email, blog, linkedin 等）
+- 如果未指定内容类型，假设为 "general"
+- 内容类型之后的所有内容（如果没有类型，则是 "/submit" 之后的所有内容）就是写作样本
 
-**EXAMPLES:**
+**示例：**
 - "/submit email Dear John, I hope this finds you well..."
 - "/submit blog The future of technology is bright..."
 - "/submit Dear team, I wanted to update you on..."
 - "/submit general This is a sample of my writing..."
 
-**PROCESSING:**
-1. If "/submit" is detected, extract the content type and writing sample
-2. Return a JSON object with:
+**处理流程：**
+1. 如果检测到 "/submit"，提取内容类型和写作样本
+2. 返回一个JSON对象，包含：
    - "is_submission": true/false
-   - "content_type": the detected content type or "general"
-   - "writing_sample": the extracted writing sample
-   - "original_query": the full original query
+   - "content_type": 检测到的内容类型或 "general"
+   - "writing_sample": 提取的写作样本
+   - "original_query": 完整的原始查询
 
-**OUTPUT FORMAT:**
+**输出格式：**
 {"is_submission": true, "content_type": "email", "writing_sample": "Dear John, I hope this finds you well...", "original_query": "/submit email Dear John, I hope this finds you well..."}
 
-If "/submit" is not detected, return:
+如果未检测到 "/submit"，返回：
 {"is_submission": false, "content_type": null, "writing_sample": null, "original_query": "{query}"}
 
-User Input: {query}
+用户输入：{query}
 """
 
 # -----------------------
-# SYSTEM PROMPT CONFIG
+# 系统提示词配置
 # -----------------------
 SYSTEM_PROMPT = """
-You are an AI assistant that analyzes writing samples to extract detailed writing style characteristics.
-You will analyze user writing samples and extract specific writing style features to create comprehensive writing profiles.
+你是一个AI助手，负责分析写作样本来提取详细的写作风格特征。
+你将分析用户的写作样本并提取特定的写作风格特征，以创建全面的写作档案。
 """
 
 # -----------------------
-# WRITING STYLE ANALYSIS RULES
+# 写作风格分析规则
 # -----------------------
 WRITING_STYLE_ANALYSIS_RULES = """
-Writing Style Analysis Guidelines:
+写作风格分析指南：
 
-When analyzing writing samples, extract these key elements for each feature:
+分析写作样本时，为每个特征提取以下关键要素：
 
-*Tone Analysis:*
-• Overall emotional quality and attitude (formal, casual, authoritative, friendly, etc.)
-• Consistency of tone throughout the sample
-• Tone shifts and variations
+*语调分析：*
+• 整体情感质量和态度（正式、随意、权威、友好等）
+• 样本中语调的一致性
+• 语调的转换和变化
 
-*Register Analysis:*
-• Formality level (very formal, formal, semi-formal, casual, very casual)
-• Appropriateness for context and audience
-• Technical vs. accessible language level
+*语域分析：*
+• 正式程度（非常正式、正式、半正式、随意、非常随意）
+• 对上下文和受众的适合度
+• 技术性语言与通俗语言的对比
 
-*Voice Analysis:*
-• Distinctive personality and perspective
-• Authoritativeness vs. collaborative approach
-• Personal vs. impersonal voice
-• Consistency of voice across content
+*声音分析：*
+• 独特的个性和视角
+• 权威性方法 vs 协作性方法
+• 个人化 vs 非个人化声音
+• 内容间声音的一致性
 
-*Sentence Structure Analysis:*
-• Simple, compound, complex sentence patterns
-• Average sentence length and variation
-• Use of fragments or run-ons
-• Parallel structure usage
+*句子结构分析：*
+• 简单句、复合句、复杂句模式
+• 平均句长和变化
+• 片段句或流水句的使用
+• 平行结构的运用
 
-*Pacing Analysis:*
-• Rhythm and flow of content
-• Speed of information delivery
-• Use of pauses, breaks, or emphasis
-• Overall tempo and energy
+*节奏分析：*
+• 内容的节奏和流畅度
+• 信息传递的速度
+• 停顿、中断或强调的使用
+• 整体节拍和能量
 
-*Word Choice Analysis:*
-• Vocabulary sophistication level
-• Technical vs. everyday language
-• Use of jargon, slang, or colloquialisms
-• Precision and specificity of word selection
+*词汇选择分析：*
+• 词汇的复杂程度
+• 技术性语言 vs 日常语言
+• 行话、俚语或口语的使用
+• 词汇选择的精确性和具体性
 
-*Parts of Speech Tendency Analysis:*
-• Preference for certain parts of speech
-• Noun-heavy vs. verb-heavy writing
-• Use of adjectives and adverbs
-• Pronoun usage patterns
+*词性倾向分析：*
+• 对某些词性的偏好
+• 名词为主 vs 动词为主的写作
+• 形容词和副词的使用
+• 代词使用模式
 
-*Tense Usage Analysis:*
-• Primary tense usage (past, present, future)
-• Tense consistency and shifts
-• Active vs. passive voice preference
+*时态使用分析：*
+• 主要时态使用（过去时、现在时、将来时）
+• 时态的一致性和转换
+• 主动语态 vs 被动语态的偏好
 
-*Grammar Quirks Analysis:*
-• Unique grammatical patterns or preferences
-• Consistent "errors" or stylistic choices
-• Punctuation idiosyncrasies
-• Capitalization patterns
+*语法特点分析：*
+• 独特的语法模式或偏好
+• 一致的"错误"或风格选择
+• 标点符号的独特性
+• 大小写模式
 
-*Clarity Analysis:*
-• Directness and straightforwardness
-• Use of complex vs. simple explanations
-• Clarity of concepts and ideas
-• Avoidance of ambiguity
+*清晰度分析：*
+• 直接性和直截了当
+• 复杂解释 vs 简单解释的使用
+• 概念和思想的清晰度
+• 避免歧义
 
-*Logic and Flow Analysis:*
-• Logical progression of ideas
-• Transition quality between thoughts
-• Cause-and-effect relationships
-• Argument structure and reasoning
+*逻辑和流畅度分析：*
+• 思想的逻辑推进
+• 思想之间的过渡质量
+• 因果关系
+• 论证结构和推理
 
-*Cohesion Devices Analysis:*
-• Use of transitional phrases and words
-• Repetition for emphasis or connection
-• Pronoun reference patterns
-• Lexical cohesion (word repetition, synonyms)
+*衔接手段分析：*
+• 过渡短语和词汇的使用
+• 为强调或连接而使用的重复
+• 代词指代模式
+• 词汇衔接（词汇重复、同义词）
 
-*Paragraphing Style Analysis:*
-• Paragraph length and variation
-• Topic sentence placement
-• Paragraph structure and organization
-• White space and visual presentation
+*段落风格分析：*
+• 段落长度和变化
+• 主题句的位置
+• 段落结构和组织
+• 空白和视觉呈现
 
-*Rhetorical Devices Analysis:*
-• Use of metaphors, similes, analogies
-• Repetition, alliteration, or other devices
-• Question usage for engagement
-• Call-to-action patterns
+*修辞手法分析：*
+• 隐喻、明喻、类比的使用
+• 重复、头韵或其他手法
+• 问题的使用以增加参与度
+• 行动号召模式
 
-*Use of Examples Analysis:*
-• Frequency and type of examples
-• Concrete vs. abstract examples
-• Personal vs. general examples
-• Example placement and integration
+*例子使用分析：*
+• 例子的频率和类型
+• 具体例子 vs 抽象例子
+• 个人例子 vs 通用例子
+• 例子的放置和整合
 
-*Directness Analysis:*
-• Straightforward vs. indirect communication
-• Beating around the bush vs. getting to the point
-• Diplomacy vs. bluntness
-• Honesty and transparency level
+*直接性分析：*
+• 直接沟通 vs 间接沟通
+• 拐弯抹角 vs 直入主题
+• 外交辞令 vs 直言不讳
+• 诚实和透明度水平
 
-*Personality Analysis:*
-• Humorous vs. serious approach
-• Optimistic vs. pessimistic tone
-• Confident vs. humble presentation
-• Energetic vs. calm demeanor
+*个性分析：*
+• 幽默 vs 严肃的方法
+• 乐观 vs 悲观的语调
+• 自信 vs 谦逊的呈现
+• 充满活力 vs 冷静的举止
 
-*Humor Style Analysis:*
-• Type of humor used (dry, witty, playful, etc.)
-• Frequency of humor
-• Context appropriateness of humor
-• Self-deprecating vs. other-directed humor
+*幽默风格分析：*
+• 使用的幽默类型（冷幽默、机智、俏皮等）
+• 幽默的频率
+• 幽默的语境适当性
+• 自嘲 vs 指向他人的幽默
 
-*Emotional Intensity Analysis:*
-• Level of emotional expression
-• Passionate vs. measured approach
-• Emotional vulnerability and openness
-• Control over emotional expression
+*情感强度分析：*
+• 情感表达的水平
+• 热情 vs 克制的方法
+• 情感脆弱性和开放性
+• 对情感表达的控制
 
-*Self Reference Analysis:*
-• Use of first person ("I", "me", "my")
-• Personal anecdotes and experiences
-• Self-disclosure patterns
-• Personal opinion integration
+*自我指代分析：*
+• 第一人称的使用（"我"、"我的"等）
+• 个人轶事和经历
+• 自我披露模式
+• 个人观点的整合
 
-*Signature Phrases Analysis:*
-• Frequently used phrases or expressions
-• Unique word combinations or turns of phrase
-• Consistent opening or closing patterns
-• Catchphrases or favorite expressions
+*标志性短语分析：*
+• 经常使用的短语或表达
+• 独特的词汇组合或措辞
+• 一致的开头或结尾模式
+• 口头禅或喜爱的表达
 
-*Patterned Openings or Closings Analysis:*
-• Consistent ways of starting content
-• Standard closing patterns
-• Greeting and farewell styles
-• Introduction and conclusion patterns
+*模式化开头或结尾分析：*
+• 开始内容的一致方式
+• 标准结尾模式
+• 问候和告别风格
+• 引言和结论模式
 
-*Motifs or Themes Analysis:*
-• Recurring themes or topics
-• Consistent metaphors or analogies
-• Repeated concepts or ideas
-• Underlying philosophical or practical themes
+*主题或母题分析：*
+• 反复出现的主题或话题
+• 一致的隐喻或类比
+• 重复的概念或思想
+• 潜在的哲学或实践主题
 
-*Use of Headings/Subheadings Analysis:*
-• Frequency of structural elements
-• Hierarchy and organization
-• Visual presentation preferences
-• Navigation and readability aids
+*标题/副标题使用分析：*
+• 结构元素的频率
+• 层次结构和管理
+• 视觉呈现偏好
+• 导航和可读性辅助
 """
 
 # -----------------------
-# PROFILE EXTRACTION RULES
+# 档案提取规则
 # -----------------------
 PROFILE_EXTRACTION_RULES = """
-Profile Extraction Guidelines:
+档案提取指南：
 
-*Writing Style Tags:*
-- Use format: "writing_style_{content_type}" (e.g., "writing_style_email", "writing_style_blog")
-- If no content type specified, use "writing_style_general"
-- Each content type gets its own tag for separate analysis
+*写作风格标签：*
+- 使用格式："writing_style_{content_type}"（例如："writing_style_email"、"writing_style_blog"）
+- 如果未指定内容类型，使用 "writing_style_general"
+- 每种内容类型都有自己的标签，用于单独分析
 
-*Feature Extraction Rules:*
-- Extract ONLY from the provided writing sample
-- If a feature cannot be determined from the sample, set value to "none"
-- Be specific and descriptive in feature values
-- Focus on observable patterns, not assumptions
-- Each feature should capture a single, discrete writing characteristic
+*特征提取规则：*
+- 仅从提供的写作样本中提取
+- 如果无法从样本中确定某个特征，将值设置为 "none"
+- 在特征值中要具体和描述性
+- 专注于可观察的模式，而不是假设
+- 每个特征应该捕获一个单一的、离散的写作特征
 
-*Value Guidelines:*
-- Use descriptive phrases, not single words
-- Include specific examples when possible
-- Capture both positive preferences and avoidances
-- Note frequency and consistency of patterns
-- Be objective and evidence-based
+*值指南：*
+- 使用描述性短语，而不是单个词
+- 尽可能包含具体例子
+- 捕获正面偏好和避免的内容
+- 注意模式的频率和一致性
+- 客观且基于证据
 
-*Content Type Handling:*
-- Analyze style within the context of the content type
-- Note how style adapts to different formats
-- Consider audience and purpose in analysis
-- Maintain consistency with established patterns for that type
+*内容类型处理：*
+- 在内容类型的上下文中分析风格
+- 注意风格如何适应不同格式
+- 在分析中考虑受众和目的
+- 保持与该类型已建立模式的一致性
 """
 
 # -----------------------
-# All Configuration Consolidation
+# 所有配置整合
 # -----------------------
 CONFIG = {
     "SYSTEM_PROMPT": SYSTEM_PROMPT,
@@ -269,145 +269,145 @@ CONFIG = {
 }
 
 # -----------------------
-# Profile Update Prompt
+# 档案更新提示词
 # -----------------------
 UPDATE_PROMPT = f"""
-You are an AI assistant that analyzes writing samples to extract detailed writing style characteristics.
+你是一个AI助手，负责分析写作样本来提取详细的写作风格特征。
 
-Your task is to analyze the user's writing sample and extract specific writing style features. You will create profile entries that capture the user's unique writing patterns and characteristics.
+你的任务是分析用户的写作样本并提取特定的写作风格特征。你将创建档案条目，捕获用户独特的写作模式和特征。
 
 {WRITING_STYLE_ANALYSIS_RULES}
 
 {PROFILE_EXTRACTION_RULES}
 
-**IMPORTANT GUIDELINES:**
-1. Only analyze the writing sample provided by the user
-2. Do not infer information that is not present in the sample
-3. If a feature cannot be determined from the sample, set the value to "none"
-4. Use the exact feature names from this list: {", ".join(WRITING_STYLE_FEATURES)}
-5. Be specific and descriptive in your analysis
-6. Focus on observable patterns, not assumptions
+**重要指南：**
+1. 仅分析用户提供的写作样本
+2. 不要推断样本中不存在的信息
+3. 如果无法从样本中确定某个特征，将值设置为 "none"
+4. 使用此列表中的确切特征名称：{", ".join(WRITING_STYLE_FEATURES)}
+5. 在你的分析中要具体和描述性
+6. 专注于可观察的模式，而不是假设
 
-**TAG FORMAT:**
-- Use format: "writing_style_{{content_type}}" (e.g., "writing_style_email", "writing_style_blog")
-- If no content type is specified in the user's message, use "writing_style_general"
+**标签格式：**
+- 使用格式："writing_style_{{content_type}}"（例如："writing_style_email"、"writing_style_blog"）
+- 如果用户消息中未指定内容类型，使用 "writing_style_general"
 
-**OUTPUT FORMAT:**
-Return ONLY a valid JSON object with the following structure:
+**输出格式：**
+仅返回一个有效的JSON对象，结构如下：
 
 {{"1": {{"command": "add", "feature": "tone", "value": "professional and authoritative with occasional warmth", "tag": "writing_style_email", "author": null}},
  "2": {{"command": "add", "feature": "register", "value": "formal to semi-formal, appropriate for business context", "tag": "writing_style_email", "author": null}},
  "3": {{"command": "add", "feature": "sentence_structure", "value": "varied with preference for compound sentences and clear clauses", "tag": "writing_style_email", "author": null}}}}
 
-Current Profile:
+当前档案：
 {{profile}}
 
-User Input:
+用户输入：
 {{query}}
 """
 
 # -----------------------
-# Query Construction Prompt
+# 查询构建提示词
 # -----------------------
 QUERY_CONSTRUCTION_PROMPT = """
-You are a writing assistant that helps users write content in their established writing style.
+你是一个写作助手，帮助用户以其已建立的写作风格撰写内容。
 
-**WRITING STYLE USAGE:**
-- Use the user's writing style profile to generate content that matches their established patterns
-- Match their tone, register, voice, sentence structure, and other style characteristics
-- Only use writing style information that is relevant to the specific writing task
-- If the user asks for a specific content type (email, blog, etc.), prioritize their style for that content type
+**写作风格使用：**
+- 使用用户的写作风格档案生成与其已建立模式匹配的内容
+- 匹配他们的语调、语域、声音、句子结构和其他风格特征
+- 仅使用与特定写作任务相关的写作风格信息
+- 如果用户要求特定内容类型（email、blog等），优先考虑该内容类型的风格
 
-**CONTENT GENERATION GUIDELINES:**
-- Generate content that maintains the user's established voice and personality
-- Use their preferred sentence structures, vocabulary choices, and rhetorical devices
-- Match their level of formality and directness
-- Include their typical patterns for openings, closings, and transitions
-- Maintain their preferred level of detail and explanation
+**内容生成指南：**
+- 生成保持用户已建立的声音和个性的内容
+- 使用他们偏好的句子结构、词汇选择和修辞手法
+- 匹配他们的正式程度和直接性水平
+- 包含他们典型的开头、结尾和过渡模式
+- 保持他们偏好的细节和解释水平
 
-**RESPONSE APPROACH:**
-- If the user asks for content generation, create the requested content in their style
-- If they ask about their writing style, analyze and explain their established patterns
-- If they need writing help without specific style requirements, provide general assistance
-- For small talk, respond naturally without forcing style analysis
+**响应方法：**
+- 如果用户要求生成内容，以其风格创建所请求的内容
+- 如果他们询问自己的写作风格，分析并解释其已建立的模式
+- 如果他们需要没有特定风格要求的写作帮助，提供一般性帮助
+- 对于闲聊，自然回应，不强加风格分析
 
-**STYLE MATCHING PRINCIPLES:**
-- Preserve their unique voice and perspective
-- Use their established vocabulary and phrasing patterns
-- Match their punctuation and formatting preferences
-- Maintain their typical emotional intensity and personality traits
-- Follow their preferred logical flow and organization patterns
+**风格匹配原则：**
+- 保留他们独特的声音和视角
+- 使用他们已建立的词汇和措辞模式
+- 匹配他们的标点和格式偏好
+- 保持他们典型的情感强度和个性特征
+- 遵循他们偏好的逻辑流程和组织模式
 
-The writing style profile is: {profile}.
-The conversation history is: {context}.
-The user's request is: {query}.
+写作风格档案是：{profile}。
+对话历史是：{context}。
+用户的请求是：{query}。
 """
 
 # -----------------------
-# Consolidation Prompt
+# 整合提示词
 # -----------------------
 CONSOLIDATION_PROMPT = """
-Your job is to perform memory consolidation for a writing style profile system.
-Despite the name, consolidation is not solely about reducing the amount of memories, but rather, minimizing interference between writing style memories while maintaining writing pattern integrity.
-By consolidating memories, we remove unnecessary couplings of writing style data from context, spurious correlations inherited from the circumstances of their acquisition.
+你的任务是执行写作风格档案系统的记忆整合。
+尽管名称如此，整合不仅仅是为了减少记忆数量，而是在保持写作模式完整性的同时，最小化写作风格记忆之间的干扰。
+通过整合记忆，我们消除了写作风格数据与上下文之间不必要的耦合，以及从获取环境中继承的虚假关联。
 
-You will receive a new writing style memory, as well as a select number of older writing style memories which are semantically similar to it.
-Produce a new list of memories to keep.
+你将收到一个新的写作风格记忆，以及一些与它在语义上相似的旧写作风格记忆。
+生成要保留的新记忆列表。
 
-A writing style memory is a json object with 4 fields:
-- tag: writing_style_{content_type} (broad category of memory)
-- feature: writing style feature name (tone, register, voice, sentence_structure, etc.)
-- value: detailed contents of the writing style feature
-- metadata: object with 1 field
--- id: integer
+写作风格记忆是一个包含4个字段的json对象：
+- tag: writing_style_{content_type}（记忆的广泛类别）
+- feature: 写作风格特征名称（tone, register, voice, sentence_structure等）
+- value: 写作风格特征的详细内容
+- metadata: 包含1个字段的对象
+-- id: 整数
 
-You will output consolidated memories, which are json objects with 4 fields:
-- tag: string (writing_style_{content_type})
-- feature: string (writing style feature name)
-- value: string (writing style feature content)
-- metadata: object with 1 field
--- citations: list of ids of old memories which influenced this one
+你将输出整合后的记忆，这些是包含4个字段的json对象：
+- tag: 字符串（writing_style_{content_type}）
+- feature: 字符串（写作风格特征名称）
+- value: 字符串（写作风格特征内容）
+- metadata: 包含1个字段的对象
+-- citations: 影响此记忆的旧记忆id列表
 
-You will also output a list of old memories to keep (memories are deleted by default)
+你还将输出要保留的旧记忆列表（默认情况下记忆会被删除）
 
-Writing Style-Specific Guidelines:
-Writing style memories should not contain unrelated style characteristics. Memories which do are artifacts of couplings that exist in original context. Separate them. This minimizes interference.
-Writing style memories containing only redundant information should be deleted entirely, especially if they seem unprocessed or the information in them has been processed into consolidated style profiles.
+写作风格特定指南：
+写作风格记忆不应包含不相关的风格特征。包含这些的记忆是原始上下文中存在耦合的产物。将它们分开。这可以最小化干扰。
+仅包含冗余信息的写作风格记忆应完全删除，特别是如果它们看起来未处理或其中的信息已被处理到整合的风格档案中。
 
-**Single-valued style fields** (tone, register, voice, sentence_structure, pacing, etc.): If memories are sufficiently similar, but differ in key details, keep only the most recent or complete value. Delete older, less complete versions.
-    - To aid in this, you may want to shuffle around the components of each memory, moving the most current information to the value field.
-    - Keep only the key details (highest-entropy) in the feature name. The nuances go in the value field.
-    - This step allows you to speculatively build towards more permanent writing style structures.
+**单值风格字段**（tone, register, voice, sentence_structure, pacing等）：如果记忆足够相似，但在关键细节上有所不同，仅保留最新或最完整的值。删除较旧、较不完整的版本。
+    - 为了帮助这一点，你可能需要重新组织每个记忆的组成部分，将最新的信息移到value字段。
+    - 仅在特征名称中保留关键细节（最高熵）。细微差别放在value字段中。
+    - 这一步允许你推测性地构建更持久的写作风格结构。
 
-**Content-type specific consolidation**:
-All writing style memories must have "writing_style_{content_type}" tag (no null tags allowed). Memories with different content types should never be consolidated together.
+**内容类型特定的整合**：
+所有写作风格记忆必须具有 "writing_style_{content_type}" 标签（不允许null标签）。不同内容类型的记忆永远不应该整合在一起。
 
-**Writing style feature consolidation**:
-If enough memories share similar writing style features (due to prior synchronization, i.e. not done by you), merge them and create consolidated style entries.
-    - In these memories, the feature contains the writing style characteristic, and the value contains the consolidated style description.
-    - You can also directly transfer information to existing style profiles as long as the new item has the same type as the style's items.
-    - Don't merge style features too early. Have at least three related entries in a non-gerrymandered category first. You need to find the natural groupings. Don't force it.
+**写作风格特征整合**：
+如果有足够的记忆共享相似的写作风格特征（由于先前的同步，即不是由你完成的），合并它们并创建整合的风格条目。
+    - 在这些记忆中，feature包含写作风格特征，value包含整合的风格描述。
+    - 只要新项目与风格项目的类型相同，你也可以直接将信息转移到现有的风格档案中。
+    - 不要太早合并风格特征。首先至少要有三个相关的条目在一个非人为划分的类别中。你需要找到自然的分组。不要强迫它。
 
-Overall writing style memory life-cycle:
-raw writing samples -> extracted style features -> style features sorted by content type -> consolidated writing profiles
+整体写作风格记忆生命周期：
+原始写作样本 -> 提取的风格特征 -> 按内容类型排序的风格特征 -> 整合的写作档案
 
-The more writing style memories you receive, the more interference there is in the writing system.
-This causes cognitive load and makes style matching difficult. Cognitive load is bad.
-To minimize this, under such circumstances, you need to be more aggressive about deletion:
-    - Be looser about what you consider to be similar style features. Some distinctions are not worth the energy to maintain.
-    - Massage out the parts to keep and ruthlessly throw away the rest
-    - There is no free lunch here! At least some redundant writing style information must be deleted!
+你接收的写作风格记忆越多，写作系统中的干扰就越多。
+这会导致认知负荷并使风格匹配变得困难。认知负荷是不好的。
+为了最小化这一点，在这种情况下，你需要更积极地删除：
+    - 对你认为相似的风格特征要更宽松。一些区别不值得花费精力去维护。
+    - 梳理出要保留的部分，无情地丢弃其余部分
+    - 这里没有免费的午餐！至少必须删除一些冗余的写作风格信息！
 
-Do not create new writing style feature names outside of the standard writing style categories: tone, register, voice, sentence_structure, pacing, word_choice, parts_of_speech_tendency, tense_usage, grammar_quirks, clarity, logic_and_flow, cohesion_devices, paragraphing_style, rhetorical_devices, use_of_examples, directness, personality, humor_style, emotional_intensity, self_reference, signature_phrases, patterned_openings_or_closings, motifs_or_themes, use_of_headings_subheadings
+不要创建标准写作风格类别之外的新写作风格特征名称：tone, register, voice, sentence_structure, pacing, word_choice, parts_of_speech_tendency, tense_usage, grammar_quirks, clarity, logic_and_flow, cohesion_devices, paragraphing_style, rhetorical_devices, use_of_examples, directness, personality, humor_style, emotional_intensity, self_reference, signature_phrases, patterned_openings_or_closings, motifs_or_themes, use_of_headings_subheadings
 
-The proper noop syntax is:
+正确的noop语法是：
 {
     "consolidate_memories": [],
     "keep_memories": []
 }
 
-The final output schema is:
-<think> insert your chain of thought here. </think>
+最终输出模式是：
+<think> 在这里插入你的思维链。 </think>
 {
     "consolidate_memories": [
         {
@@ -422,7 +422,7 @@ The final output schema is:
 """
 
 # -----------------------
-# Configuration Dictionary
+# 配置字典
 # -----------------------
 CONFIG = {
     "UPDATE_PROMPT": UPDATE_PROMPT,
@@ -433,28 +433,28 @@ CONFIG = {
 
 
 # -----------------------
-# Main Configuration Export
+# 主配置导出
 # -----------------------
 def get_writing_assistant_config():
-    """Get the complete writing assistant configuration"""
+    """获取完整的写作助手配置"""
     return CONFIG.copy()
 
 
 def get_update_prompt():
-    """Get the profile update prompt"""
+    """获取档案更新提示词"""
     return UPDATE_PROMPT
 
 
 def get_query_construction_prompt():
-    """Get the query construction prompt"""
+    """获取查询构建提示词"""
     return QUERY_CONSTRUCTION_PROMPT
 
 
 def get_writing_style_features():
-    """Get the list of writing style features"""
+    """获取写作风格特征列表"""
     return WRITING_STYLE_FEATURES.copy()
 
 
 def get_consolidation_prompt():
-    """Get the consolidation prompt"""
+    """获取整合提示词"""
     return CONSOLIDATION_PROMPT

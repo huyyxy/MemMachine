@@ -1,5 +1,5 @@
 """
-Common utility functions.
+通用工具函数。
 """
 
 import asyncio
@@ -14,17 +14,17 @@ async def async_with(
     awaitable: Awaitable,
 ) -> Any:
     """
-    Helper function to use an async context manager with an awaitable.
+    使用异步上下文管理器与可等待对象的辅助函数。
 
     Args:
         async_context_manager (AbstractAsyncContextManager):
-            The async context manager to use.
+            要使用的异步上下文管理器。
         awaitable (Awaitable):
-            The awaitable to execute within the context.
+            在上下文中执行的可等待对象。
 
     Returns:
         Any:
-            The result of the awaitable.
+            可等待对象的结果。
     """
     async with async_context_manager:
         return await awaitable
@@ -32,8 +32,8 @@ async def async_with(
 
 def async_locked(func):
     """
-    Decorator to ensure that a coroutine function is executed with a lock.
-    The lock is shared across all invocations of the decorated coroutine function.
+    装饰器，确保协程函数在使用锁的情况下执行。
+    该锁在所有被装饰协程函数的调用中共享。
     """
     lock = asyncio.Lock()
 

@@ -1,8 +1,7 @@
 """
-Abstract base class for a vector graph store.
+向量图存储的抽象基类。
 
-Defines the interface for adding, searching,
-and deleting nodes and edges.
+定义了添加、搜索和删除节点和边的接口。
 """
 
 from abc import ABC, abstractmethod
@@ -17,26 +16,26 @@ from .data_types import Edge, Node, Property
 
 class VectorGraphStore(ABC):
     """
-    Abstract base class for a vector graph store.
+    向量图存储的抽象基类。
     """
 
     @abstractmethod
     async def add_nodes(self, nodes: Collection[Node]):
         """
-        Add nodes to the graph store.
+        向图存储中添加节点。
 
         Args:
-            nodes (Collection[Node]): Collection of Node objects to add.
+            nodes (Collection[Node]): 要添加的 Node 对象集合。
         """
         raise NotImplementedError
 
     @abstractmethod
     async def add_edges(self, edges: Collection[Edge]):
         """
-        Add edges to the graph store.
+        向图存储中添加边。
 
         Args:
-            edges (Collection[Edge]): Collection of Edge objects to add.
+            edges (Collection[Edge]): 要添加的 Edge 对象集合。
         """
         raise NotImplementedError
 
@@ -52,36 +51,33 @@ class VectorGraphStore(ABC):
         include_missing_properties: bool = False,
     ) -> list[Node]:
         """
-        Search for nodes with embeddings similar to the query embedding.
+        搜索与查询嵌入向量相似的节点。
 
         Args:
             query_embedding (list[float]):
-                The embedding vector to compare against.
+                用于比较的嵌入向量。
             embedding_property_name (str):
-                The name of the property
-                that stores the embedding vector.
+                存储嵌入向量的属性名称。
             similarity_metric (SimilarityMetric, optional):
-                The similarity metric to use
-                (default: SimilarityMetric.COSINE).
+                要使用的相似度度量方法
+                (默认: SimilarityMetric.COSINE)。
             limit (int | None, optional):
-                Maximum number of similar nodes to return.
-                If None, return as many similar nodes as possible
-                (default: 100).
+                返回的最大相似节点数量。
+                如果为 None，则返回尽可能多的相似节点
+                (默认: 100)。
             required_labels (Collection[str] | None, optional):
-                Collection of labels that the nodes must have.
-                If None, no label filtering is applied.
+                节点必须具有的标签集合。
+                如果为 None，则不应用标签过滤。
             required_properties (Mapping[str, Property], optional):
-                Mapping of property names to their required values
-                that the nodes must have.
-                If empty, no property filtering is applied.
+                节点必须具有的属性名称到其必需值的映射。
+                如果为空，则不应用属性过滤。
             include_missing_properties (bool, optional):
-                If True, nodes missing any of the required properties
-                will also be included in the results.
+                如果为 True，缺少任何必需属性的节点
+                也将包含在结果中。
 
         Returns:
             list[Node]:
-                List of Node objects
-                that are similar to the query embedding.
+                与查询嵌入向量相似的 Node 对象列表。
         """
         raise NotImplementedError
 
@@ -98,41 +94,37 @@ class VectorGraphStore(ABC):
         include_missing_properties: bool = False,
     ) -> list[Node]:
         """
-        Search for nodes related to the specified node via edges.
+        通过边搜索与指定节点相关的节点。
 
         Args:
             node_uuid (UUID):
-                UUID of the node to find related nodes for.
+                要查找相关节点的节点的 UUID。
             allowed_relations (Collection[str] | None, optional):
-                Collection of relationship types to consider.
-                If None, all relationship types are considered.
+                要考虑的关系类型集合。
+                如果为 None，则考虑所有关系类型。
             find_sources (bool, optional):
-                If True, search for nodes
-                that are sources of edges
-                pointing to the specified node.
+                如果为 True，搜索作为指向指定节点的
+                边的源节点的节点。
             find_targets (bool, optional):
-                If True, search for nodes
-                that are targets of edges
-                originating from the specified node.
+                如果为 True，搜索作为从指定节点发出的
+                边的目标节点的节点。
             limit (int | None, optional):
-                Maximum number of related nodes to return.
-                If None, return as many related nodes as possible
-                (default: None).
+                返回的最大相关节点数量。
+                如果为 None，则返回尽可能多的相关节点
+                (默认: None)。
             required_labels (Collection[str] | None, optional):
-                Collection of labels that the related nodes must have.
-                If None, no label filtering is applied.
+                相关节点必须具有的标签集合。
+                如果为 None，则不应用标签过滤。
             required_properties (Mapping[str, Property], optional):
-                Mapping of property names to their required values
-                that the nodes must have.
-                If empty, no property filtering is applied.
+                节点必须具有的属性名称到其必需值的映射。
+                如果为空，则不应用属性过滤。
             include_missing_properties (bool, optional):
-                If True, nodes missing any of the required properties
-                will also be included in the results.
+                如果为 True，缺少任何必需属性的节点
+                也将包含在结果中。
 
         Returns:
             list[Node]:
-                List of Node objects
-                that are related to the specified node.
+                与指定节点相关的 Node 对象列表。
         """
         raise NotImplementedError
 
@@ -149,39 +141,38 @@ class VectorGraphStore(ABC):
         include_missing_properties: bool = False,
     ) -> list[Node]:
         """
-        Search for nodes ordered by a specific property.
+        按特定属性排序搜索节点。
 
         Args:
             by_property (str):
-                The property name to order the nodes by.
+                用于排序节点的属性名称。
             start_at_value (Any | None, optional):
-                The value to start the search from.
-                If None, start from the beginning or end
-                based on order_ascending.
+                搜索开始的值。
+                如果为 None，根据 order_ascending
+                从头或尾开始。
             include_equal_start_at_value (bool, optional):
-                If True, include nodes with property value
-                equal to start_at_value.
+                如果为 True，包含属性值等于
+                start_at_value 的节点。
             order_ascending (bool, optional):
-                If True, order nodes in ascending order.
-                If False, order in descending order.
+                如果为 True，按升序排列节点。
+                如果为 False，按降序排列。
             limit (int | None, optional):
-                Maximum number of nodes to return.
-                If None, return as many matching nodes as possible
-                (default: 1).
+                返回的最大节点数量。
+                如果为 None，则返回尽可能多的匹配节点
+                (默认: 1)。
             required_labels (Collection[str] | None, optional):
-                Collection of labels that the nodes must have.
-                If None, no label filtering is applied.
+                节点必须具有的标签集合。
+                如果为 None，则不应用标签过滤。
             required_properties (Mapping[str, Property], optional):
-                Mapping of property names to their required values
-                that the nodes must have.
-                If empty, no property filtering is applied.
+                节点必须具有的属性名称到其必需值的映射。
+                如果为空，则不应用属性过滤。
             include_missing_properties (bool, optional):
-                If True, nodes missing any of the required properties
-                will also be included in the results.
+                如果为 True，缺少任何必需属性的节点
+                也将包含在结果中。
 
         Returns:
             list[Node]:
-                List of Node objects ordered by the specified property.
+                按指定属性排序的 Node 对象列表。
         """
         raise NotImplementedError
 
@@ -194,27 +185,26 @@ class VectorGraphStore(ABC):
         include_missing_properties: bool = False,
     ) -> list[Node]:
         """
-        Search for nodes matching the specified labels and properties.
+        搜索匹配指定标签和属性的节点。
 
         Args:
             limit (int | None, optional):
-                Maximum number of nodes to return.
-                If None, return as many matching nodes as possible
-                (default: None).
+                返回的最大节点数量。
+                如果为 None，则返回尽可能多的匹配节点
+                (默认: None)。
             required_labels (Collection[str] | None, optional):
-                Collection of labels that the nodes must have.
-                If None, no label filtering is applied.
+                节点必须具有的标签集合。
+                如果为 None，则不应用标签过滤。
             required_properties (Mapping[str, Property], optional):
-                Mapping of property names to their required values
-                that the nodes must have.
-                If empty, no property filtering is applied.
+                节点必须具有的属性名称到其必需值的映射。
+                如果为空，则不应用属性过滤。
             include_missing_properties (bool, optional):
-                If True, nodes missing any of the required properties
-                will also be included in the results.
+                如果为 True，缺少任何必需属性的节点
+                也将包含在结果中。
 
         Returns:
             list[Node]:
-                List of Node objects matching the specified criteria.
+                匹配指定条件的 Node 对象列表。
         """
         raise NotImplementedError
 
@@ -224,24 +214,24 @@ class VectorGraphStore(ABC):
         node_uuids: Collection[UUID],
     ):
         """
-        Delete nodes from the graph store.
+        从图存储中删除节点。
 
         Args:
             node_uuids (Collection[UUID]):
-                Collection of UUIDs of the nodes to delete.
+                要删除的节点的 UUID 集合。
         """
         raise NotImplementedError
 
     @abstractmethod
     async def clear_data(self):
         """
-        Clear all data from the graph store.
+        清除图存储中的所有数据。
         """
         raise NotImplementedError
 
     @abstractmethod
     async def close(self):
         """
-        Shut down and release resources.
+        关闭并释放资源。
         """
         raise NotImplementedError

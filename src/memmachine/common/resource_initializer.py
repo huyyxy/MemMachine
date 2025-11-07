@@ -1,6 +1,5 @@
 """
-Resource initializer for building resources
-based on their definitions and dependencies.
+基于资源定义和依赖关系构建资源的资源初始化器。
 """
 
 from collections import deque
@@ -32,7 +31,7 @@ from memmachine.episodic_memory.declarative_memory.related_episode_postulator im
 )
 
 """
-Each entry in resource_definitions should look like this:
+resource_definitions 中的每个条目应如下所示：
 ```
 resource_id: {
     "type": "<TYPE>",
@@ -44,7 +43,7 @@ resource_id: {
 ```
 """
 
-# Map resource types to their corresponding builder classes
+# 映射资源类型到其对应的构建器类
 resource_builder_map: dict[str, type[Builder]] = {
     "declarative_memory": DeclarativeMemoryBuilder,
     "derivative_deriver": DerivativeDeriverBuilder,
@@ -60,8 +59,7 @@ resource_builder_map: dict[str, type[Builder]] = {
 
 class ResourceInitializer:
     """
-    Resource initializer for building resources
-    based on their definitions and dependencies.
+    基于资源定义和依赖关系构建资源的资源初始化器。
     """
 
     @staticmethod
@@ -70,8 +68,7 @@ class ResourceInitializer:
         resource_cache: dict[str, Any] | None = None,
     ):
         """
-        Initialize resources
-        based on their definitions and dependencies.
+        基于资源定义和依赖关系初始化资源。
         """
         if resource_cache is None:
             resource_cache = {}
@@ -94,8 +91,7 @@ class ResourceInitializer:
             resource_dependency_graph: dict[str, set[str]],
         ) -> list[str]:
             """
-            Order resources based on their dependencies
-            using a topological sort.
+            使用拓扑排序根据资源依赖关系对资源进行排序。
             """
             ordered_resource_ids = []
 
@@ -111,18 +107,17 @@ class ResourceInitializer:
                 dependency_ids,
             ) in resource_dependency_graph.items():
                 for dependency_id in dependency_ids:
-                    # Check that the dependency exists in either the resource definitions or the resource cache.
+                    # 检查依赖项是否存在于资源定义或资源缓存中。
                     if (
                         dependency_id not in resource_dependency_graph.keys()
                         and dependency_id not in resource_cache.keys()
                     ):
                         raise ValueError(
-                            f"Dependency {dependency_id} "
-                            f"for resource {resource_id} "
-                            "found in neither resource definitions not resource cache"
+                            f"资源 {resource_id} 的依赖项 {dependency_id} "
+                            "在资源定义和资源缓存中均未找到"
                         )
 
-                    # Only count depdencies that have not been initialized yet.
+                    # 只统计尚未初始化的依赖项。
                     if dependency_id in resource_dependency_graph.keys():
                         dependency_counts[resource_id] += 1
                         dependent_resource_ids[dependency_id].add(resource_id)

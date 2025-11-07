@@ -4,71 +4,69 @@ from enum import Enum
 from typing import Any
 from uuid import UUID
 
-# Type alias for JSON-compatible data structures.
+# JSON兼容数据结构的类型别名。
 JSONValue = None | bool | int | float | str | list["JSONValue"] | dict[str, "JSONValue"]
 
 
 class ContentType(Enum):
-    """Enumeration for the type of content within an Episode."""
+    """Episode中内容类型的枚举。"""
 
     STRING = "string"
-    # Other content types like 'vector', 'image' could be added here.
+    # 可以在此添加其他内容类型，如'vector'、'image'等。
 
 
 @dataclass
 class SessionInfo:
     """
-    Represents the information about a single conversation session.
-    This is typically retrieved from or stored in a session management
-    database.
+    表示单个对话会话的信息。
+    通常从会话管理数据库中检索或存储。
     """
 
     group_id: str
-    """The identifier for a group conversation."""
+    """群组对话的标识符。"""
     session_id: str
     """
-    A unique string identifier for the session.
+    会话的唯一字符串标识符。
     """
     agent_ids: list[str]
-    """A list of agent identifiers participating in the session."""
+    """参与会话的代理标识符列表。"""
     user_ids: list[str]
-    """A list of user identifiers participating in the session."""
+    """参与会话的用户标识符列表。"""
     configuration: dict
-    """A dictionary containing any custom configuration for this session."""
+    """包含此会话的任何自定义配置的字典。"""
 
 
 @dataclass
 class GroupConfiguration:
     """
-    Represents the configuration for a group of conversations.
+    表示一组对话的配置。
     """
 
     group_id: str
-    """The identifier for the group."""
+    """群的标识符。"""
     agent_list: list[str]
-    """A list of agent identifiers in the group."""
+    """群中的代理标识符列表。"""
     user_list: list[str]
-    """A list of user identifiers in the group."""
+    """群中的用户标识符列表。"""
     configuration: dict
-    """A dictionary containing any custom configuration for the group."""
+    """包含群组任何自定义配置的字典。"""
 
 
 @dataclass
 class MemoryContext:
     """
-    Defines the unique context for a memory instance.
-    It's used to isolate memories for different conversations, users,
-    and agents.
+    定义内存实例的唯一上下文。
+    用于隔离不同对话、用户和代理的内存。
     """
 
     group_id: str
-    """The identifier for the group context."""
+    """群组上下文的标识符。"""
     agent_id: set[str]
-    """A set of agent identifiers for the context."""
+    """上下文的代理标识符集合。"""
     user_id: set[str]
-    """A set of user identifiers for the context."""
+    """上下文的用户标识符集合。"""
     session_id: str
-    """The identifier for the session context."""
+    """会话上下文的标识符。"""
 
     def __eq__(self, other):
         if not isinstance(other, MemoryContext):
@@ -85,33 +83,30 @@ class MemoryContext:
 @dataclass(kw_only=True)
 class Episode:
     """
-    Represents a single, atomic event or piece of data in the memory system.
-    `kw_only=True` enforces that all fields must be specified as keyword
-    arguments during instantiation, improving clarity.
+    表示内存系统中的单个原子事件或数据片段。
+    `kw_only=True` 强制在实例化时必须将所有字段指定为关键字参数，以提高清晰度。
     """
 
     uuid: UUID
-    """A unique identifier (UUID) for the episode."""
+    """Episode的唯一标识符（UUID）。"""
     episode_type: str
     """
-    A string indicating the type of the episode (e.g., 'message', 'thought',
-    'action').
+    表示episode类型的字符串（例如，'message'、'thought'、'action'）。
     """
     content_type: ContentType
-    """The type of the data stored in the 'content' field."""
+    """存储在'content'字段中的数据类型。"""
     content: Any
-    """The actual data of the episode, which can be of any type."""
+    """episode的实际数据，可以是任何类型。"""
     timestamp: datetime
-    """The date and time when the episode occurred."""
+    """episode发生的日期和时间。"""
     group_id: str
-    """Identifier for the group (e.g., a specific chat room or DM)."""
+    """群的标识符（例如，特定的聊天室或私信）。"""
     session_id: str
-    """Identifier for the session to which this episode belongs."""
+    """此episode所属会话的标识符。"""
     producer_id: str
-    """The identifier of the user or agent that created this episode."""
+    """创建此episode的用户或代理的标识符。"""
     produced_for_id: str | None = None
-    """The identifier of the intended recipient, if any."""
+    """目标接收者的标识符（如果有）。"""
     user_metadata: JSONValue = None
     """
-    A dictionary for any additional, user-defined metadata in a
-    JSON-compatible format."""
+    用于任何额外的用户定义元数据的字典，采用JSON兼容格式。"""

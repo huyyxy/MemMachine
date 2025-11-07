@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 class RecordMapping(Mapping):
     def __init__(self, inner: asyncpg.Record):
-        # inner is the external Record instance
+        # inner 是外部 Record 实例
         self._inner = inner
 
     def __getitem__(self, key: str) -> Any:
@@ -42,7 +42,7 @@ class RecordMapping(Mapping):
 
 class AsyncPgProfileStorage(ProfileStorageBase):
     """
-    asyncpg implementation for ProfileStorageBase
+    ProfileStorageBase 的 asyncpg 实现
     """
 
     @staticmethod
@@ -75,11 +75,11 @@ class AsyncPgProfileStorage(ProfileStorageBase):
 
     async def startup(self):
         """
-        initializes connection pool
+        初始化连接池
         """
         if self._pool is None:
             kwargs = {}
-            # if using supabase transaction pooler, it does not support prepared statements
+            # 如果使用 supabase 事务池，它不支持预编译语句
             if "statement_cache_size" in self._config:
                 kwargs["statement_cache_size"] = self._config["statement_cache_size"]
             self._pool = await asyncpg.create_pool(
@@ -301,7 +301,7 @@ class AsyncPgProfileStorage(ProfileStorageBase):
         isolations: dict[str, bool | int | float | str] | None = None,
     ) -> list[list[dict[str, Any]]]:
         """
-        Retrieve every section of the user's profile which has more then 20 entries, formatted as json.
+        检索用户配置文件中每个条目数超过 20 的部分，格式化为 json。
         """
         if isolations is None:
             isolations = {}
@@ -334,7 +334,7 @@ class AsyncPgProfileStorage(ProfileStorageBase):
                 thresh,
             )
             out = [json.loads(obj[0]) for obj in agg]
-            # print("large_profile_sections for user_id", out)
+            # print("用户 user_id 的大配置文件部分", out)
             return out
 
     def _normalize_value(self, value: Any) -> str:
@@ -482,7 +482,7 @@ class AsyncPgProfileStorage(ProfileStorageBase):
 
     async def mark_messages_ingested(self, ids: list[int]) -> None:
         if not ids:
-            return  # nothing to do
+            return  # 无需操作
 
         stm = f"""
                 UPDATE {self.history_table}

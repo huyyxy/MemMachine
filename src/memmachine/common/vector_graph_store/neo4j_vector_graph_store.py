@@ -1,8 +1,8 @@
 """
-Neo4j-based vector graph store implementation.
+基于 Neo4j 的向量图存储实现。
 
-This module provides an asynchronous implementation
-of a vector graph store using Neo4j as the backend database.
+此模块提供使用 Neo4j 作为后端数据库的
+向量图存储的异步实现。
 """
 
 import asyncio
@@ -28,46 +28,45 @@ logger = logging.getLogger(__name__)
 
 class Neo4jVectorGraphStoreParams(BaseModel):
     """
-    Parameters for Neo4jVectorGraphStore.
+    Neo4jVectorGraphStore 的参数。
 
-    Attributes:
+    属性:
         driver (neo4j.AsyncDriver):
-            Async Neo4j driver instance.
+            异步 Neo4j 驱动实例。
         max_concurrent_transactions (int):
-            Maximum number of concurrent transactions
-            (default: 100).
+            最大并发事务数
+            (默认: 100)。
         force_exact_similarity_search (bool):
-            Whether to force exact similarity search.
-            (default: False).
+            是否强制使用精确相似度搜索。
+            (默认: False)。
     """
 
     driver: InstanceOf[AsyncDriver] = Field(
-        ..., description="Async Neo4j driver instance"
+        ..., description="异步 Neo4j 驱动实例"
     )
     max_concurrent_transactions: int = Field(
-        100, description="Maximum number of concurrent transactions", gt=0
+        100, description="最大并发事务数", gt=0
     )
     force_exact_similarity_search: bool = Field(
-        False, description="Whether to force exact similarity search"
+        False, description="是否强制使用精确相似度搜索"
     )
 
 
 # https://neo4j.com/developer/kb/protecting-against-cypher-injection
-# Node labels, relationship types, and property names
-# cannot be parameterized.
+# 节点标签、关系类型和属性名称
+# 无法被参数化。
 class Neo4jVectorGraphStore(VectorGraphStore):
     """
-    Asynchronous Neo4j-based implementation of VectorGraphStore.
+    基于 Neo4j 的异步 VectorGraphStore 实现。
     """
 
     def __init__(self, params: Neo4jVectorGraphStoreParams):
         """
-        Initialize a Neo4jVectorGraphStore
-        with the provided parameters.
+        使用提供的参数初始化 Neo4jVectorGraphStore。
 
-        Args:
+        参数:
             params (Neo4jVectorGraphStoreParams):
-                Parameters for the Neo4jVectorGraphStore.
+                Neo4jVectorGraphStore 的参数。
         """
         super().__init__()
 
@@ -179,14 +178,10 @@ class Neo4jVectorGraphStore(VectorGraphStore):
 
             if vector_index_name is None:
                 logger.warning(
-                    "No labels specified for vector index lookup. "
-                    "Falling back to exact similarity search."
+                    "未指定向量索引查找的标签。"
+                    "回退到精确相似度搜索。"
                 )
                 exact_similarity_search = True
-
-        # ANN search requires a finite limit.
-        if limit is None and not exact_similarity_search:
-            limit = 100_000
 
         if exact_similarity_search:
             match similarity_metric:
@@ -226,6 +221,10 @@ class Neo4jVectorGraphStore(VectorGraphStore):
                 )
 
         else:
+            # ANN 搜索需要有限制的数量。
+            if limit is None:
+                limit = 100_000
+
             await self._create_node_vector_index_if_not_exist(
                 labels=cast(Collection[str], required_labels),
                 embedding_property_name=embedding_property_name,
@@ -432,18 +431,18 @@ class Neo4jVectorGraphStore(VectorGraphStore):
         similarity_metric: SimilarityMetric = SimilarityMetric.COSINE,
     ):
         """
-        Create node vector index(es) if not exist.
+        如果不存在则创建节点向量索引。
 
-        Args:
+        参数:
             labels (Collection[str]):
-                Collection of node labels to create vector indexes for.
+                要为其创建向量索引的节点标签集合。
             embedding_property_name (str):
-                Name of the embedding property.
+                嵌入属性的名称。
             dimensions (int):
-                Dimensionality of the embedding vectors.
+                嵌入向量的维度。
             similarity_metric (SimilarityMetric):
-                Similarity metric to use for the vector index
-                (default: SimilarityMetric.COSINE).
+                向量索引使用的相似度度量
+                (默认: SimilarityMetric.COSINE)。
         """
         if not self._vector_index_name_cache:
             async with self._semaphore:
@@ -520,13 +519,13 @@ class Neo4jVectorGraphStore(VectorGraphStore):
         self, create_index_tasks: Collection[Awaitable]
     ):
         """
-        Execute the creation of node vector indexes if not exist.
-        Locked because Neo4j concurrent vector index creation
-        can raise exceptions even with "IF NOT EXISTS".
+        执行节点向量索引的创建（如果不存在）。
+        使用锁是因为 Neo4j 并发向量索引创建
+        即使使用 "IF NOT EXISTS" 也可能抛出异常。
 
-        Args:
+        参数:
             create_index_tasks (Collection[Awaitable]):
-                Collection of awaitable tasks to create vector indexes.
+                创建向量索引的可等待任务集合。
         """
         await asyncio.gather(*create_index_tasks)
 
@@ -536,27 +535,27 @@ class Neo4jVectorGraphStore(VectorGraphStore):
     @staticmethod
     def _sanitize_name(name: str) -> str:
         """
-        Sanitize a name to be used in Neo4j.
+        清理名称以在 Neo4j 中使用。
         https://neo4j.com/docs/cypher-manual/current/syntax/naming
 
-        Args:
-            name (str): The name to sanitize.
+        参数:
+            name (str): 要清理的名称。
 
-        Returns:
-            str: The sanitized name.
+        返回:
+            str: 清理后的名称。
         """
         return "".join(c if c.isalnum() else f"_u{ord(c):x}_" for c in name)
 
     @staticmethod
     def _desanitize_name(sanitized_name: str) -> str:
         """
-        Desanitize a name from Neo4j.
+        对从 Neo4j 获取的名称进行反向清理。
 
-        Args:
-            sanitized_name (str): The sanitized name.
+        参数:
+            sanitized_name (str): 已清理的名称。
 
-        Returns:
-            str: The desanitized name.
+        返回:
+            str: 反向清理后的名称。
         """
         return re.sub(
             r"_u([0-9a-fA-F]+)_",
@@ -567,15 +566,15 @@ class Neo4jVectorGraphStore(VectorGraphStore):
     @staticmethod
     def _format_labels(labels: Collection[str] | None) -> str:
         """
-        Format an iterable of labels for use in a Cypher query.
+        格式化标签集合以供 Cypher 查询使用。
 
-        Args:
+        参数:
             labels (Collection[str] | None):
-                Collection of labels to format.
+                要格式化的标签集合。
 
-        Returns:
+        返回:
             str:
-                Formatted labels string for Cypher query.
+                用于 Cypher 查询的格式化标签字符串。
         """
         return (
             "".join(
@@ -592,21 +591,20 @@ class Neo4jVectorGraphStore(VectorGraphStore):
         include_missing_properties: bool,
     ) -> str:
         """
-        Format required properties for use in a Cypher query.
+        格式化必需属性以供 Cypher 查询使用。
 
-        Args:
+        参数:
             entity_query_alias (str):
-                Alias of the node or relationship in the query
-                (e.g., "n", "r").
+                查询中节点或关系的别名
+                (例如, "n", "r")。
             required_properties (Mapping[str, Property]):
-                Mapping of required properties.
+                必需属性的映射。
             include_missing_properties (bool):
-                Whether to include results
-                with missing required properties.
+                是否包含缺少必需属性的结果。
 
-        Returns:
+        返回:
             str:
-                Formatted required properties string for Cypher query.
+                用于 Cypher 查询的格式化必需属性字符串。
         """
         return (
             " AND ".join(
@@ -632,17 +630,16 @@ class Neo4jVectorGraphStore(VectorGraphStore):
         sanitized_label: str, sanitized_embedding_property_name: str
     ) -> str:
         """
-        Generate a unique name for a node vector index
-        based on the label and embedding property name.
+        基于标签和嵌入属性名称生成节点向量索引的唯一名称。
 
-        Args:
+        参数:
             sanitized_label (str):
-                The sanitized node label.
+                已清理的节点标签。
             embedding_property_name (str):
-                The sanitized embedding property name.
+                已清理的嵌入属性名称。
 
-        Returns:
-            str: The generated vector index name.
+        返回:
+            str: 生成的向量索引名称。
         """
         return (
             "node_vector_index"
@@ -659,13 +656,13 @@ class Neo4jVectorGraphStore(VectorGraphStore):
         neo4j_nodes: Collection[Neo4jNode],
     ) -> list[Node]:
         """
-        Convert a collection of Neo4jNodes to a list of Nodes.
+        将 Neo4jNode 集合转换为 Node 列表。
 
-        Args:
-            neo4j_nodes (Collection[Neo4jNode]): Collection of Neo4jNodes.
+        参数:
+            neo4j_nodes (Collection[Neo4jNode]): Neo4jNode 集合。
 
-        Returns:
-            list[Node]: List of Node objects.
+        返回:
+            list[Node]: Node 对象列表。
         """
         return [
             Node(
@@ -685,13 +682,13 @@ class Neo4jVectorGraphStore(VectorGraphStore):
     @staticmethod
     def _python_value_from_neo4j_value(value: Any) -> Any:
         """
-        Convert a Neo4j value to a native Python value.
+        将 Neo4j 值转换为原生 Python 值。
 
-        Args:
-            value (Any): The Neo4j value to convert.
+        参数:
+            value (Any): 要转换的 Neo4j 值。
 
-        Returns:
-            Any: The converted Python value.
+        返回:
+            Any: 转换后的 Python 值。
         """
         if isinstance(value, Neo4jDateTime):
             return value.to_native()

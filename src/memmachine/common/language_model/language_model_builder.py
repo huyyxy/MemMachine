@@ -1,5 +1,5 @@
 """
-Builder for LanguageModel instances.
+用于构建 LanguageModel 实例的构建器。
 """
 
 from typing import Any
@@ -12,7 +12,7 @@ from .language_model import LanguageModel
 
 class LanguageModelBuilder(Builder):
     """
-    Builder for LanguageModel instances.
+    用于构建 LanguageModel 实例的构建器。
     """
 
     @staticmethod

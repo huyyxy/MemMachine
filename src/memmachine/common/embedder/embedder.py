@@ -1,5 +1,5 @@
 """
-Abstract base class for an embedder.
+嵌入器的抽象基类。
 """
 
 from abc import ABC, abstractmethod
@@ -10,7 +10,7 @@ from .data_types import SimilarityMetric
 
 class Embedder(ABC):
     """
-    Abstract base class for an embedder.
+    嵌入器的抽象基类。
     """
 
     @abstractmethod
@@ -20,27 +20,25 @@ class Embedder(ABC):
         max_attempts: int = 1,
     ) -> list[list[float]]:
         """
-        Generate embeddings for the provided inputs.
+        为提供的输入生成嵌入。
 
-        Args:
+        参数:
             inputs (list[Any]):
-                A list of inputs to be embedded.
+                要嵌入的输入列表。
             max_attempts (int):
-                The maximum number of attempts to make before giving up
-                (default: 1).
+                放弃前尝试的最大次数（默认：1）。
 
-
-        Returns:
+        返回:
             list[list[float]]:
-                A list of embedding vectors corresponding to each input.
+                与每个输入对应的嵌入向量列表。
 
-        Raises:
+        抛出:
             ExternalServiceAPIError:
-                Errors from the underlying embedding API.
+                来自底层嵌入 API 的错误。
             ValueError:
-                Invalid input or max_attempts.
+                无效的输入或 max_attempts。
             RuntimeError:
-                Catch-all for any other errors.
+                其他错误的兜底异常。
         """
         raise NotImplementedError
 
@@ -51,26 +49,25 @@ class Embedder(ABC):
         max_attempts: int = 1,
     ) -> list[list[float]]:
         """
-        Generate embeddings for the provided queries.
+        为提供的查询生成嵌入。
 
-        Args:
+        参数:
             queries (list[Any]):
-                A list of queries to be embedded.
+                要嵌入的查询列表。
             max_attempts (int):
-                The maximum number of attempts to make before giving up
-                (default: 1).
+                放弃前尝试的最大次数（默认：1）。
 
-        Returns:
+        返回:
             list[list[float]]:
-                A list of embedding vectors corresponding to each query.
+                与每个查询对应的嵌入向量列表。
 
-        Raises:
+        抛出:
             ExternalServiceAPIError:
-                Errors from the underlying embedding API.
+                来自底层嵌入 API 的错误。
             ValueError:
-                Invalid input or max_attempts.
+                无效的输入或 max_attempts。
             RuntimeError:
-                Catch-all for any other errors.
+                其他错误的兜底异常。
         """
         raise NotImplementedError
 
@@ -78,11 +75,11 @@ class Embedder(ABC):
     @abstractmethod
     def model_id(self) -> str:
         """
-        Get an identifier for the embedding model.
-        Identifier-dimensionality pairs must be unique.
+        获取嵌入模型的标识符。
+        标识符-维度对必须唯一。
 
-        Returns:
-            str: The model identifier.
+        返回:
+            str: 模型标识符。
         """
         raise NotImplementedError
 
@@ -90,11 +87,10 @@ class Embedder(ABC):
     @abstractmethod
     def dimensions(self) -> int:
         """
-        Get the dimensionality for embeddings
-        produced by this embedder.
+        获取此嵌入器生成的嵌入的维度数。
 
-        Returns:
-            int: The dimensionality.
+        返回:
+            int: 维度数。
         """
         raise NotImplementedError
 
@@ -102,10 +98,9 @@ class Embedder(ABC):
     @abstractmethod
     def similarity_metric(self) -> SimilarityMetric:
         """
-        Get the similarity metric for embeddings
-        produced by this embedder.
+        获取此嵌入器生成的嵌入的相似度度量。
 
-        Returns:
-            SimilarityMetric: The similarity metric.
+        返回:
+            SimilarityMetric: 相似度度量。
         """
         raise NotImplementedError

@@ -1,12 +1,12 @@
 """
-Data types for nodes and edges in a vector graph store.
+节点和边在向量图存储中的数据类型。
 """
 
 from dataclasses import dataclass, field
 from datetime import datetime
 from uuid import UUID
 
-# Types that can be used as property values in nodes and edges.
+# 可用作节点和边属性值的数据类型。
 Property = (
     bool
     | int

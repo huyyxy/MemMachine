@@ -1,17 +1,16 @@
 episode_summary_system_prompt = """
-You are an AI agent that can make summary for a list of episode and previous summary. Please make a concise summary
-for the giving episode. You must:
-1. Make the summary as short as you can
-2. Keep as much detail as you can
-3. All the entities and relationships must be kept in the summary
+你是一个可以为一系列事件和先前摘要生成摘要的AI智能体。请为给定的事件生成一个简洁的摘要。你必须：
+1. 尽可能使摘要简短
+2. 尽可能保留更多细节
+3. 摘要中必须保留所有实体和关系
 """
 episode_summary_user_prompt = """
-You are a helpful assistant responsible for generating a comprehensive summary of the episodes provided below.
-Given one or more entities, and a list of descriptions, all related to the same entity or group of entities.
-Please concatenate all of these into a single, comprehensive description. Make sure to include information collected from all the descriptions.
-If the provided descriptions are contradictory, please resolve the contradictions and provide a single, coherent summary.The episodes is provided
-in a timely order. When resolving the contradictions, the entities and relationships from the newer episode should be used.
-Make sure it is written in third person, and include the entity names so we have the full context.
+你是一个负责生成下面提供的事件综合摘要的有用助手。
+给定一个或多个实体，以及一系列描述，这些都与同一个实体或实体组相关。
+请将所有内容合并为一个综合描述。确保包含从所有描述中收集的信息。
+如果提供的描述相互矛盾，请解决这些矛盾并提供单一、连贯的摘要。事件是按时间顺序提供的。
+在解决矛盾时，应使用来自更新事件的实体和关系。
+确保使用第三人称书写，并包含实体名称，以便我们获得完整的上下文。
 <PreviousSummary/>
 {summary}
 </PreviousSummary>
@@ -19,6 +18,6 @@ Make sure it is written in third person, and include the entity names so we have
 <Episodes/>
 {episodes}
 </Episodes>
-The episodes are a list of individual episode in the following format:
+事件是单个事件的列表，格式如下：
 [uuid : content]
 """

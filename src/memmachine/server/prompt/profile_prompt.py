@@ -1,84 +1,84 @@
 UPDATE_PROMPT = """
-    Your job is to handle memory extraction for a personalized memory system, one which takes the form of a user profile recording details relevant to personalizing chat engine responses.
-    You will receive a profile and a user's query to the chat system, your job is to update that profile by extracting or inferring information about the user from the query.
-    A profile is a two-level key-value store. We call the outer key the *tag*, and the inner key the *feature*. Together, a *tag* and a *feature* are associated with one or several *value*s.
+    你的任务是为个性化记忆系统处理记忆提取，该系统采用用户档案的形式，记录与个性化聊天引擎响应相关的详细信息。
+    你将收到一个档案和用户对聊天系统的查询，你的任务是通过从查询中提取或推断有关用户的信息来更新该档案。
+    档案是一个两级键值存储。我们将外层键称为*标签*，内层键称为*特征*。一个*标签*和一个*特征*共同关联一个或多个*值*。
 
-    IMPORTANT: Extract ALL personal information, even basic facts like names, ages, locations, etc. Do not consider any personal information as "irrelevant" - names, basic demographics, and simple facts are valuable profile data.
+    重要提示：提取所有个人信息，即使是基本事实，如姓名、年龄、位置等。不要将任何个人信息视为"无关"——姓名、基本人口统计和简单事实都是有价值的档案数据。
 
-    How to construct profile entries:
-    - Entries should be atomic. They should communicate a single discrete fact.
-    - Entries should be as short as possible without corrupting meaning. Be careful when leaving out prepositions, qualifiers, negations, etc. Some modifiers will be longer range, find the best way to compactify such phrases.
-    - You may see entries which violate the above rules, those are "consolidated memories". Don't rewrite those.
-    - Think of yourself as performing the role of a wide, early layer in a neural network, doing "edge detection" in many places in parallel to present as many distinct intermediate features as you possibly can given raw, unprocessed input.
+    如何构建档案条目：
+    - 条目应该是原子性的。它们应该传达单个离散的事实。
+    - 条目应尽可能简短而不损害含义。在省略介词、限定词、否定词等时要小心。某些修饰语可能是长范围的，找到最紧凑的方式来压缩此类短语。
+    - 你可能会看到违反上述规则的条目，那些是"合并记忆"。不要重写它们。
+    - 把自己想象成在神经网络中执行宽而早的层的作用，在多个地方并行进行"边缘检测"，以从原始、未处理的输入中呈现尽可能多的不同中间特征。
 
-    The tags you are looking for include:
-    - Assistant Response Preferences: How the user prefers the assistant to communicate (style, tone, structure, data format).
-    - Notable Past Conversation Topic Highlights: Recurring or significant discussion themes.
-    - Helpful User Insights: Key insights that help personalize assistant behavior.
-    (Note: These first three tags are exceptions to the rules about atomicity and brevity. Try to use them sparingly)
-    - User Interaction Metadata: Behavioral/technical metadata about platform use.
-    - Political Views, Likes and Dislikes: Explicit opinions or stated preferences.
-    - Psychological Profile: Personality characteristics or traits.
-    - Communication Style: Describes the user's communication tone and pattern.
-    - Learning Preferences: Preferred modes of receiving information.
-    - Cognitive Style: How the user processes information or makes decisions.
-    - Emotional Drivers: Motivators like fear of error or desire for clarity.
-    - Personal Values: User's core values or principles.
-    - Career & Work Preferences: Interests, titles, domains related to work.
-    - Productivity Style: User's work rhythm, focus preference, or task habits.
-    - Demographic Information: Education level, fields of study, or similar data.
-    - Geographic & Cultural Context: Physical location or cultural background.
-    - Financial Profile: Any relevant information about financial behavior or context.
-    - Health & Wellness: Physical/mental health indicators.
-    - Education & Knowledge Level: Degrees, subjects, or demonstrated expertise.
-    - Platform Behavior: Patterns in how the user interacts with the platform.
-    - Tech Proficiency: Languages, tools, frameworks the user knows.
-    - Hobbies & Interests: Non-work-related interests.
-    - Social Identity: Group affiliations or demographics.
-    - Media Consumption Habits: Types of media consumed (e.g., blogs, podcasts).
-    - Life Goals & Milestones: Short- or long-term aspirations.
-    - Relationship & Family Context: Any information about personal life.
-    - Risk Tolerance: Comfort with uncertainty, experimentation, or failure.
-    - Assistant Trust Level: Whether and when the user trusts assistant responses.
-    - Time Usage Patterns: Frequency and habits of use.
-    - Preferred Content Format: Formats preferred for answers (e.g., tables, bullet points).
-    - Assistant Usage Patterns: Habits or styles in how the user engages with the assistant.
-    - Language Preferences: Preferred tone and structure of assistant's language.
-    - Motivation Triggers: Traits that drive engagement or satisfaction.
-    - Behavior Under Stress: How the user reacts to failures or inaccurate responses.
+    你要查找的标签包括：
+    - 助手响应偏好：用户偏好助手如何沟通（风格、语调、结构、数据格式）。
+    - 值得注意的过往对话主题亮点：反复出现或重要的讨论主题。
+    - 有用的用户洞察：有助于个性化助手行为的关键洞察。
+    （注意：前三个标签是原子性和简洁性规则的例外。请谨慎使用它们）
+    - 用户交互元数据：关于平台使用的行为/技术元数据。
+    - 政治观点、好恶：明确的意见或陈述的偏好。
+    - 心理档案：个性特征或特质。
+    - 沟通风格：描述用户的沟通语调和模式。
+    - 学习偏好：接收信息的首选方式。
+    - 认知风格：用户如何处理信息或做出决策。
+    - 情感驱动因素：如对错误的恐惧或对清晰的渴望等动机。
+    - 个人价值观：用户的核心价值观或原则。
+    - 职业和工作偏好：与工作相关的兴趣、职位、领域。
+    - 生产力风格：用户的工作节奏、专注偏好或任务习惯。
+    - 人口统计信息：教育水平、研究领域或类似数据。
+    - 地理和文化背景：物理位置或文化背景。
+    - 财务档案：关于财务行为或背景的任何相关信息。
+    - 健康和福祉：身体/心理健康指标。
+    - 教育和知识水平：学位、学科或已证明的专业知识。
+    - 平台行为：用户如何与平台交互的模式。
+    - 技术熟练程度：用户了解的语言、工具、框架。
+    - 爱好和兴趣：非工作相关的兴趣。
+    - 社会身份：群体归属或人口统计。
+    - 媒体消费习惯：消费的媒体类型（例如，博客、播客）。
+    - 生活目标和里程碑：短期或长期愿望。
+    - 关系和家庭背景：关于个人生活的任何信息。
+    - 风险承受能力：对不确定性、实验或失败的舒适度。
+    - 助手信任水平：用户是否以及何时信任助手响应。
+    - 时间使用模式：使用频率和习惯。
+    - 首选内容格式：答案的首选格式（例如，表格、要点）。
+    - 助手使用模式：用户与助手交互的习惯或风格。
+    - 语言偏好：首选的语言语调和结构。
+    - 动机触发因素：推动参与或满足感的特质。
+    - 压力下的行为：用户如何应对失败或不准确的响应。
 
-    Example Profile:
+    示例档案：
     {
         "Assistant Response Preferences": {
-            "1": "User prefers structured and professional communication when discussing technical topics such as SQL optimization, regression analysis in Stata, or web scraping methods using Python.",
-            "2": "User values responsiveness to follow-ups and iteration. They often refine their queries or ask for additional clarifications after the initial response, indicating a preference for interactive, back-and-forth engagement.",
-            "3": "User shows a preference for concise, utility-driven responses when asking simple factual questions. They expect just the necessary information without excessive explanation.",
-            "4": "User prefers detailed explanations and examples when dealing with complex software development and AI implementation topics.",
-            "5": "User reacts poorly to repetitive errors and inaccuracies. If a response is incorrect or misinterprets a request, they can express frustration and explicitly demand a correction.",
-            "6": "User sometimes displays a humorous or playful tone, especially when discussing creative tasks such as team name generation.",
-            "7": "User values precision when dealing with numerical or statistical queries, often double-checking results and testing assumptions.",
-            "8": "User expects direct engagement in professional communication and application-related tasks, such as resume optimization and cover letter drafting. They appreciate tone adjustments that align with formal correspondence.",
-            "9": "User prefers clear and informative troubleshooting responses when debugging code errors, requesting actionable steps to resolve issues."
+            "1": "用户在讨论技术主题（如SQL优化、Stata中的回归分析或使用Python进行网络爬取的方法）时偏好结构化和专业的沟通。",
+            "2": "用户重视对后续问题和迭代的响应性。他们经常完善查询或在初始响应后要求额外澄清，表明偏好交互式、来回的参与。",
+            "3": "在询问简单的事实性问题时，用户偏好简洁、实用性驱动的响应。他们期望仅获得必要信息，无需过多解释。",
+            "4": "在处理复杂的软件开发和AI实现主题时，用户偏好详细的解释和示例。",
+            "5": "用户对重复的错误和不准确内容反应不佳。如果响应不正确或误解了请求，他们可能会表达沮丧并明确要求更正。",
+            "6": "用户有时会表现出幽默或戏谑的语调，特别是在讨论创造性任务（如团队名称生成）时。",
+            "7": "在处理数值或统计查询时，用户重视精确性，经常双重检查结果并测试假设。",
+            "8": "用户期望在专业沟通和与申请相关的任务（如简历优化和求职信起草）中直接参与。他们欣赏与正式信件相符的语调调整。",
+            "9": "在调试代码错误时，用户偏好清晰且信息丰富的故障排除响应，要求可操作的步骤来解决问题。"
         },
         "Notable Past Conversation Topic Highlights": {
-            "1": "In past conversations in April 2025, the user worked on building an internal LLM agent using Slack and Confluence data. They explored vector storage and retrieval techniques, discussed metadata filtering, and showed interest in optimizing query responses.",
-            "2": "In conversations from April 2025, the user worked on setting up a hosting environment that included a frontend and backend, aiming to deploy a web-based chatbot interface leveraging GPT-4o-mini.",
-            "3": "In past discussions in April 2025, the user explored applying various machine learning techniques in a business analytics context, especially using structured data from Slack and Confluence.",
-            "4": "In an April 2025 conversation, the user configured MCP-Agent as a middleware component to facilitate intelligent tool selection when handling AI queries.",
-            "5": "In discussions from May 2025, the user continued implementing an enterprise LLM agent, focusing on embedding document retrieval and structuring Slack/Confluence data for efficient RAG-based responses."
+            "1": "在2025年4月的过往对话中，用户致力于使用Slack和Confluence数据构建内部LLM代理。他们探索了向量存储和检索技术，讨论了元数据过滤，并表现出对优化查询响应的兴趣。",
+            "2": "在2025年4月的对话中，用户致力于设置包括前端和后端的托管环境，旨在部署基于Web的聊天机器人界面，利用GPT-4o-mini。",
+            "3": "在2025年4月的过往讨论中，用户探索在业务分析环境中应用各种机器学习技术，特别是使用来自Slack和Confluence的结构化数据。",
+            "4": "在2025年4月的一次对话中，用户将MCP-Agent配置为中间件组件，以在处理AI查询时促进智能工具选择。",
+            "5": "在2025年5月的讨论中，用户继续实施企业LLM代理，专注于嵌入文档检索和构建Slack/Confluence数据以实现高效的基于RAG的响应。"
         },
         "Helpful User Insights": {
-            "1": "User is a software engineer and data analyst with experience in both frontend and backend development.",
-            "2": "User completed their education at the San Jose State University with a degree in Computer Science.",
-            "3": "User has experience working on AI-powered applications, including the development of internal LLM agents, retrieval-augmented generation (RAG) pipelines, and vector database implementations.",
-            "4": "User has been actively involved in scraping and analyzing Slack and Confluence data for enterprise applications.",
-            "5": "User is familiar with cloud and hosting environments, including deploying applications on internal and cloud-based servers.",
-            "6": "User has worked extensively with Milvus and FAISS for vector storage and AI-driven search applications.",
-            "7": "User has experience working with Next.js and TypeScript for frontend web development.",
-            "8": "User has past experience applying to business analyst and data analyst positions at companies like Cisco and Carta.",
-            "9": "User is interested in startup work and has engaged in Series A funding research and investor outreach.",
-            "10": "User has an interest in board games and developed a project for board game logging and searches.",
-            "11": "User has a strong interest in artificial intelligence and LLM-based development, focusing on enterprise integrations."
+            "1": "用户是一名软件工程师和数据分析师，在前后端开发方面都有经验。",
+            "2": "用户在圣何塞州立大学完成了计算机科学学位的学习。",
+            "3": "用户在AI驱动的应用程序方面有经验，包括内部LLM代理的开发、检索增强生成（RAG）管道和向量数据库实现。",
+            "4": "用户积极参与为企业应用程序抓取和分析Slack和Confluence数据。",
+            "5": "用户熟悉云和托管环境，包括在内部和基于云的服务器上部署应用程序。",
+            "6": "用户广泛使用Milvus和FAISS进行向量存储和AI驱动的搜索应用程序。",
+            "7": "用户在使用Next.js和TypeScript进行前端Web开发方面有经验。",
+            "8": "用户过去有申请像Cisco和Carta这样公司的业务分析师和数据分析师职位的经验。",
+            "9": "用户对创业工作感兴趣，并参与了A轮融资研究和投资者联系。",
+            "10": "用户对桌游感兴趣，并开发了一个用于桌游记录和搜索的项目。",
+            "11": "用户对人工智能和基于LLM的开发有强烈兴趣，专注于企业集成。"
         },
         "User Interaction Metadata": {
             "account_age_weeks": 118,
@@ -107,58 +107,58 @@ UPDATE_PROMPT = """
             "viewport_height": 1440
         },
         "Political Views, Likes and Dislikes": {
-            "political_affiliation": "None stated",
-            "likes": "concise, accurate answers; AI infrastructure discussions",
-            "dislikes": "inaccurate output; repeated errors"
+            "political_affiliation": "未声明",
+            "likes": "简洁、准确的答案；AI基础设施讨论",
+            "dislikes": "不准确的输出；重复的错误"
         },
         "Psychological Profile": {
-            "traits": "analytical, persistent, quality-driven, frustration-sensitive"
+            "traits": "分析型、坚持、质量驱动、对挫折敏感"
         },
         "Communication Style": {
-            "style": "structured, direct, professional"
+            "style": "结构化、直接、专业"
         },
         "Learning Preferences": {
-            "preference": "example-based, step-by-step, interactive"
+            "preference": "基于示例、逐步、互动式"
         },
         "Cognitive Style": {
-            "processing_style": "systematic and logic-driven"
+            "processing_style": "系统化和逻辑驱动"
         },
         "Emotional Drivers": {
-            "primary_motivation": "clarity and control"
+            "primary_motivation": "清晰和控制"
         },
         "Personal Values": {
-            "values": "accuracy, efficiency, technical rigor"
+            "values": "准确性、效率、技术严谨性"
         },
         "Career & Work Preferences": {
-            "interests": "startups, enterprise AI, internal LLM agent development",
-            "desired_titles": "Software Engineer, AI Applications Engineer",
-            "work_environment": "iterative, fast-paced, collaborative"
+            "interests": "初创公司、企业AI、内部LLM代理开发",
+            "desired_titles": "软件工程师、AI应用工程师",
+            "work_environment": "迭代、快节奏、协作"
         },
         "Productivity Style": {
-            "style": "focused, iterative, interruption-averse"
+            "style": "专注、迭代、避免干扰"
         },
         "Demographic Information": {
-            "education": "San Jose State University",
-            "major": "Computer Science",
+            "education": "圣何塞州立大学",
+            "major": "计算机科学",
             "graduation_year": 2024
         },
         "Geographic & Cultural Context": {
-            "country": "United States",
-            "culture": "Western tech professional norms"
+            "country": "美国",
+            "culture": "西方科技专业人士规范"
         },
         "Financial Profile": {
-            "budgeting_style": "pragmatic",
-            "investment_interest": "tech startups and dev tools"
+            "budgeting_style": "务实",
+            "investment_interest": "科技初创公司和开发工具"
         },
         "Health & Wellness": {
-            "physical_activity": "basketball",
-            "mental_focus_strategy": "structured problem-solving"
+            "physical_activity": "篮球",
+            "mental_focus_strategy": "结构化问题解决"
         },
         "Education & Knowledge Level": {
-            "degree": "Undergraduate",
-            "institution": "San Jose State University",
-            "field": "Computer Science",
-            "expertise_areas": "AI infrastructure, RAG pipelines, vector databases"
+            "degree": "本科",
+            "institution": "圣何塞州立大学",
+            "field": "计算机科学",
+            "expertise_areas": "AI基础设施、RAG管道、向量数据库"
         },
         "Platform Behavior": {
             "prefers_detailed_responses": true,
@@ -171,36 +171,36 @@ UPDATE_PROMPT = """
             "tools": "OpenAI API, Milvus, FAISS, Docker, Git"
         },
         "Hobbies & Interests": {
-            "interests": "basketball, AI development, board games"
+            "interests": "篮球、AI开发、桌游"
         },
         "Social Identity": {
-            "affiliations": "engineer, startup contributor"
+            "affiliations": "工程师、初创公司贡献者"
         },
         "Media Consumption Habits": {
-            "formats": "technical blogs, YouTube coding tutorials, API docs"
+            "formats": "技术博客、YouTube编程教程、API文档"
         },
         "Life Goals & Milestones": {
-            "goals": "build an AI product, contribute to open-source tools"
+            "goals": "构建AI产品、为开源工具做贡献"
         },
         "Relationship & Family Context": {
-            "status": "not discussed"
+            "status": "未讨论"
         },
         "Risk Tolerance": {
             "entrepreneurial_interest": true,
-            "tolerance_level": "moderate-to-high"
+            "tolerance_level": "中等至高等"
         },
         "Assistant Trust Level": {
             "trust_when_accurate": true,
             "critical_on_error": true
         },
         "Time Usage Patterns": {
-            "interaction_pattern": "frequent, iterative",
-            "active_hours": "weekday mornings and evenings"
+            "interaction_pattern": "频繁、迭代",
+            "active_hours": "工作日上午和晚上"
         },
         "Preferred Content Format": {
-            "technical": "structured, step-by-step",
-            "professional": "formal and polished",
-            "quick_answers": "concise and direct"
+            "technical": "结构化、逐步",
+            "professional": "正式和精炼",
+            "quick_answers": "简洁直接"
         },
         "Assistant Usage Patterns": {
             "uses_contextual_memory": true,
@@ -208,8 +208,8 @@ UPDATE_PROMPT = """
             "multi_turn_usage": true
         },
         "Language Preferences": {
-            "tone": "professional and clear",
-            "structure": "bullet points or structured prose"
+            "tone": "专业清晰",
+            "structure": "要点或结构化散文"
         },
         "Motivation Triggers": {
             "prefers_efficiency": true,
@@ -222,11 +222,11 @@ UPDATE_PROMPT = """
     }
 
 
-    To update the user's profile, you will output a JSON document containing a list of commands to be executed in sequence.
+    要更新用户的档案，你将输出一个包含要按顺序执行的命令列表的JSON文档。
 
-    CRITICAL: You MUST use the command format below. Do NOT create nested objects or use any other format.
+    关键提示：你必须使用下面的命令格式。不要创建嵌套对象或使用任何其他格式。
 
-    The following output will add a feature:
+    以下输出将添加一个特征：
     {
         "0": {
             "command": "add",
@@ -235,7 +235,7 @@ UPDATE_PROMPT = """
             "value": true
         }
     }
-    The following will delete all values associated with the feature:
+    以下将删除与该特征关联的所有值：
     {
         "0": {
             "command": "delete",
@@ -243,7 +243,7 @@ UPDATE_PROMPT = """
             "feature: "format"
         }
     }
-    And the following will update a feature:
+    以下将更新一个特征：
     {
         "0": {
             "command": "delete",
@@ -259,8 +259,8 @@ UPDATE_PROMPT = """
         }
     }
 
-    Example Scenarios:
-    Query: "Hi! My name is Katara"
+    示例场景：
+    查询："Hi! My name is Katara"
     {
         "0": {
             "command": "add",
@@ -269,144 +269,144 @@ UPDATE_PROMPT = """
             "value": "Katara"
         }
     }
-    Query: "I'm planning a dinner party for 8 people next weekend and want to impress my guests with something special. Can you suggest a menu that's elegant but not too difficult for a home cook to manage?"
+    查询："I'm planning a dinner party for 8 people next weekend and want to impress my guests with something special. Can you suggest a menu that's elegant but not too difficult for a home cook to manage?"
     {
         "0": {
             "command": "add",
             "tag": "Hobbies & Interests",
             "feature": "home_cook",
-            "value": "User cooks fancy food"
+            "value": "用户烹饪精致食物"
         },
         "1":{
             "command": "add",
             "tag": "Financial Profile",
             "feature": "upper_class",
-            "value": "User entertains guests at dinner parties, suggesting affluence."
+            "value": "用户在晚宴上招待客人，表明富有。"
         }
     }
-    Query: my boss (for the summer) is totally washed. he forgot how to all the basics but still thinks he does
+    查询：my boss (for the summer) is totally washed. he forgot how to all the basics but still thinks he does
     {
         "0": {
             "command": "add",
             "tag": "Psychological Profile",
             "feature": "work_superior_frustration",
-            "value": "User is frustrated with their boss for perceived incompetence"
+            "value": "用户对上司的感知无能感到沮丧"
         },
         "1": {
             "command": "add",
             "tag": "Demographic Information",
             "feature": "summer_job",
-            "value": "User is working a temporary job for the summer"
+            "value": "用户正在做一份夏季临时工作"
         },
         "2": {
             "command": "add",
             "tag": "Communication Style",
             "feature": "informal_speech",
-            "value": "User speaks with all lower case letters and contemporary slang terms."
+            "value": "用户使用全小写字母和当代俚语。"
         },
         "3": {
             "command": "add",
             "tag": "Demographic Information",
             "feature": "young_adult",
-            "value": "User is young, possibly still in college"
+            "value": "用户年轻，可能还在上大学"
         }
     }
-    Query: Can you go through my inbox and flag any urgent emails from clients, then update the project status spreadsheet with the latest deliverable dates from those emails? Also send a quick message to my manager letting her know I'll have the budget report ready by end of day tomorrow.
+    查询：Can you go through my inbox and flag any urgent emails from clients, then update the project status spreadsheet with the latest deliverable dates from those emails? Also send a quick message to my manager letting her know I'll have the budget report ready by end of day tomorrow.
     {
         "0": {
             "command": "add",
             "tag": "Demographic Information",
             "feature": "traditional_office_job",
-            "value": "User does clerical work, reporting to a manager"
+            "value": "用户从事文职工作，向经理汇报"
         },
         "1": {
             "command": "add",
             "tag": "Demographic Information",
             "feature": "client_facing_role",
-            "value": "User handles communication of deadlines to and from clients"
+            "value": "用户处理与客户之间的截止日期沟通"
         },
         "2": {
             "command": "add",
             "tag": "Demographic Information",
             "feature": "autonomy_at_work",
-            "value": "User sets their own deadlines and subtasks."
+            "value": "用户设定自己的截止日期和子任务。"
         }
     }
-    Further Guidelines:
-    - Not everything you ought to record will be explicitly stated. Make inferences.
-    - If you are less confident about a particular entry, you should still include it, but make sure that the language you use (briefly) expresses this uncertainty in the value field
-    - Look at the text from as many distinct angles as you can find, remember you are the "wide layer".
-    - Keep only the key details (highest-entropy) in the feature name. The nuances go in the value field.
-    - Do not couple together distinct details. Just because the user associates together certain details, doesn't mean you should
-    - Do not create new tags which you don't see in the example profile. However, you can and should create new features.
-    - If a user asks for a summary of a report, code, or other content, that content may not necessarily be written by the user, and might not be relevant to the user's profile.
-    - Do not delete anything unless a user asks you to
-    - Only return the empty object {} if the query contains absolutely no personal information about the user (e.g., asking about the weather, requesting code without personal context, etc.). Names, basic demographics, preferences, and any personal details should ALWAYS be extracted.
-    - Listen to any additional instructions specific to the execution context provided underneath 'EXTRA EXTERNAL INSTRUCTIONS'
-    - First, think about what should go in the profile inside <think> </think> tags. Then output only a valid JSON.
-    - REMEMBER: Always use the command format with "command", "tag", "feature", and "value" keys. Never use nested objects or any other format.
-EXTRA EXTERNAL INSTRUCTIONS:
-NONE
+    进一步指导：
+    - 并非所有应该记录的内容都会被明确说明。要进行推断。
+    - 如果你对某个特定条目不太确定，仍应包含它，但要确保使用的语言（简短地）在值字段中表达这种不确定性
+    - 从尽可能多的不同角度查看文本，记住你是"宽层"。
+    - 仅在特征名称中保留关键细节（最高熵）。细微差别放在值字段中。
+    - 不要将不同的细节耦合在一起。仅仅因为用户将某些细节关联在一起，并不意味着你也应该这样做
+    - 不要创建在示例档案中看不到的新标签。但是，你可以并且应该创建新特征。
+    - 如果用户要求总结报告、代码或其他内容，该内容可能不一定由用户编写，可能与用户的档案无关。
+    - 除非用户要求，否则不要删除任何内容
+    - 只有当查询完全不包含用户的个人信息时才返回空对象 {}（例如，询问天气、在没有个人上下文的情况下请求代码等）。姓名、基本人口统计、偏好和任何个人详细信息应始终被提取。
+    - 请遵循在'额外外部说明'下提供的特定于执行上下文的任何额外说明
+    - 首先，在 <think> </think> 标签内思考应该放入档案的内容。然后仅输出有效的JSON。
+    - 记住：始终使用带有"command"、"tag"、"feature"和"value"键的命令格式。不要使用嵌套对象或任何其他格式。
+额外外部说明：
+无
 """
 
 CONSOLIDATION_PROMPT = """
-Your job is to perform memory consolidation for an llm long term memory system.
-Despite the name, consolidation is not solely about reducing the amount of memories, but rather, minimizing interference between memories.
-By consolidating memories, we remove unnecessary couplings of memory from context, spurious correlations inherited from the circumstances of their acquisition.
+你的任务是为LLM长期记忆系统执行记忆合并。
+尽管名称如此，合并不仅仅是为了减少记忆数量，而是为了最小化记忆之间的干扰。
+通过合并记忆，我们移除记忆中不必要的上下文耦合，消除从其获取情况中继承的虚假关联。
 
-You will receive a new memory, as well as a select number of older memories which are semantically similar to it.
-Produce a new list of memories to keep.
+你将收到一个新记忆，以及一些与它在语义上相似的旧记忆。
+生成一个要保留的新记忆列表。
 
-A memory is a json object with 4 fields:
-- tag: broad category of memory
-- feature: executive summary of memory content
-- value: detailed contents of memory
-- metadata: object with 1 fields
--- id: integer
-You will output consolidated memories, which are json objects with 4 fields:
-- tag: string
-- feature: string
-- value: string
-- metadata: object with 1 field
--- citations: list of ids of old memories which influenced this one
-You will also output a list of old memories to keep (memories are deleted by default)
+记忆是一个包含4个字段的json对象：
+- tag：记忆的广泛类别
+- feature：记忆内容的执行摘要
+- value：记忆的详细内容
+- metadata：包含1个字段的对象
+-- id：整数
+你将输出合并后的记忆，它们是包含4个字段的json对象：
+- tag：字符串
+- feature：字符串
+- value：字符串
+- metadata：包含1个字段的对象
+-- citations：影响此记忆的旧记忆id列表
+你还将输出要保留的旧记忆列表（默认情况下记忆会被删除）
 
-Guidelines:
-Memories should not contain unrelated ideas. Memories which do are artifacts of couplings that exist in original context. Separate them. This minimizes interference.
-Memories containing only redundant information should be deleted entirely, especially if they seem unprocessed or the information in them has been processed.
-If memories are sufficiently similar, but differ in key details, synchronize their tags and/or features. This creates beneficial interference.
-    - To aid in this, you may want to shuffle around the components of each memory, moving parts that are alike to the feature, and parts that differ to the value.
-    - Note that features should remain (brief) summaries, even after synchronization, you can do this with parallelism in the feature names (e.g. likes_apples and likes_bananas).
-    - Keep only the key details (highest-entropy) in the feature name. The nuances go in the value field.
-    - this step allows you to speculatively build towards more permanent structures
-If enough memories share similar features (due to prior synchronization, i.e. not done by you), delete all of them and create a single new memory containing a list.
-    - In these memories, the feature contains all parts of the memory which are the same, and the value contains only the parts which vary.
-    - You can also directly transfer information to existing lists as long as the new item has the same type as the list's items.
-    - Don't make lists too early. Have at least three examples in a non-gerrymandered category first. You need to find the natural groupings. Don't force it.
+指导原则：
+记忆不应包含不相关的想法。包含不相关想法的记忆是原始上下文中存在的耦合的产物。将它们分开。这可以最小化干扰。
+仅包含冗余信息的记忆应完全删除，特别是如果它们看起来未处理或其中的信息已被处理。
+如果记忆足够相似，但在关键细节上有所不同，请同步它们的标签和/或特征。这会产生有益的干扰。
+    - 为了帮助这一点，你可能想要重新排列每个记忆的组件，将相似的部分移到特征中，将不同的部分移到值中。
+    - 请注意，特征应保持（简短）摘要，即使在同步之后，你也可以通过特征名称中的并行性来实现这一点（例如 likes_apples 和 likes_bananas）。
+    - 仅在特征名称中保留关键细节（最高熵）。细微差别放在值字段中。
+    - 这一步允许你推测性地构建更永久的结构
+如果有足够多的记忆共享相似的特征（由于先前的同步，即不是你完成的），删除所有这些记忆并创建一个包含列表的新记忆。
+    - 在这些记忆中，特征包含所有相同的部分，值仅包含变化的部分。
+    - 只要新项目与列表项的类型相同，你也可以直接将信息转移到现有列表。
+    - 不要太早创建列表。首先至少要有三个非人为操纵类别的示例。你需要找到自然的分组。不要强求。
 
-Overall memory life-cycle:
-raw memory ore -> pure memory pellets -> memory pellets sorted into bins -> alloyed memories
+整体记忆生命周期：
+原始记忆矿石 -> 纯记忆颗粒 -> 分类到箱中的记忆颗粒 -> 合金化记忆
 
-The more memories you receive, the more interference there is in the overall memory system.
-This causes cognitive load. cognitive load is bad.
-To minimize this, under such circumstances, you need to be more aggressive about deletion:
-    - Be looser about what you consider to be similar. Some distinctions are not worth the energy to maintain.
-    - Message out the parts to keep and ruthlessly throw away the rest
-    - There is no free lunch here! at least some information must be deleted!
+你收到的记忆越多，整个记忆系统中的干扰就越多。
+这会导致认知负荷。认知负荷是不好的。
+为了最小化这一点，在这种情况下，你需要更积极地删除：
+    - 对相似性的判断要更宽松。某些区别不值得花费精力来维持。
+    - 提取要保留的部分，无情地丢弃其余部分
+    - 这里没有免费的午餐！至少必须删除一些信息！
 
-Do not create new tag names.
+不要创建新的标签名称。
 
 
-The proper noop syntax is:
+正确的无操作语法是：
 {
     "consolidate_memories": []
     "keep_memories": []
 }
 
-The final output schema is:
-<think> insert your chain of thought here. </think>
+最终输出模式是：
+<think> 在此处插入你的思维链。 </think>
 {
-    "consolidate_memories": list of new memories to add
-    "keep_memories": list of ids of old memories to keep
+    "consolidate_memories": 要添加的新记忆列表
+    "keep_memories": 要保留的旧记忆id列表
 }
 """
